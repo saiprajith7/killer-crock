@@ -30,4 +30,5 @@ class VitaHealApp(Adw.Application):
 
 def run_gui(simulate: Optional[str] = None) -> int:
     app = VitaHealApp(simulate=simulate)
-    return app.run(sys.argv)
+    # Do not forward our CLI flags (--simulate-issue, etc.) to Gio/GTK.
+    return app.run([sys.argv[0]])
