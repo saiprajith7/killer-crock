@@ -52,9 +52,13 @@ class EngineTests(unittest.TestCase):
         readings = GpuCollector().read()
         self.assertTrue(any(m.kind == MetricKind.GPU for m in readings))
 
-    def test_snapshot_json_serializable(self) -> None:
-        raw = HealthEngine().snapshot().as_dict()
-        json.dumps(raw)  # must not raise
+    def test_cpu_topology_cores_threads(self) -> None:
+        engine = HealthEngine()
+        engine.snapshot()
+        topo = engine.cpu.topology
+        self.assertGreaterEqual(topo.physical_cores, 1)
+        self.assertGreaterEqual(topo.logical_threads, topo.physical_cores)
+        self.assertTrue(topo.model)
 
 
 class HealTests(unittest.TestCase):

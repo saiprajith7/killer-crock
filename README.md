@@ -8,14 +8,11 @@ When a critical fault is detected it **pops up a dialog naming the issue and ask
 
 ## Features
 
-- Minimal instrument UI with live device graphs (RAM, Disk, CPU, GPU, Temp, Swap)
-- Dual logs: **Trouble** (what’s wrong) and **Heal** (what was auto-healed / declined)
-- Explicit **× close** button plus native window close
-- Live vitals: CPU, load, memory, swap, disk, inodes, temperature, **GPU** (NVIDIA/AMD/Intel), network, zombies
-- Cyber-quiet ink + signal-green aesthetic — asks Yes/No before any heal
-- Autoheal armed mode → confirmation → privileged helper via polkit/`pkexec`
-- Background daemon with desktop notifications that launches the GUI for decisions
-- Proper Debian packaging (`vitaheal` package)
+- Minimal instrument UI with **tabs**: Overview · CPU · Memory · Disk · GPU · Thermal · Logs
+- CPU tab shows **cores, threads, model, per-core bars**, load averages
+- GPU + Thermal get dedicated scrollable pages
+- Logs tab has inner tabs: **Trouble Log** / **Heal Log**
+- Live device graphs, explicit **× close**, Yes/No autoheal
 
 ## File structure
 

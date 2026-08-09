@@ -218,8 +218,12 @@ def detect_gpus() -> list[GpuInfo]:
 
 
 class GpuCollector:
+    def __init__(self) -> None:
+        self.gpus: list[GpuInfo] = []
+
     def read(self) -> list[MetricReading]:
         gpus = detect_gpus()
+        self.gpus = gpus
         if not gpus:
             return [
                 MetricReading(
