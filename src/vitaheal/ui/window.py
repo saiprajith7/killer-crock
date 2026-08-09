@@ -15,9 +15,10 @@ from vitaheal import APP_NAME, BRAND
 from vitaheal.heal.actions import perform_heal
 from vitaheal.monitor.engine import HealthEngine
 from vitaheal.monitor.models import HealthSnapshot, Issue, MetricKind, Severity
+from vitaheal.monitor.updates import UpdateStatus, list_upgradable, read_sources, summarize_packages
 from vitaheal.ui.eventlog import EventLog
 from vitaheal.ui.gauges import BreathWave, DeviceGraph, HeroVitality
-from vitaheal.ui.heal_dialog import HealResultToast, ask_heal
+from vitaheal.ui.heal_dialog import HealResultToast, ask_confirm, ask_heal
 
 CSS_PATH = Path(__file__).with_name("style.css")
 
@@ -84,10 +85,13 @@ class VitaHealWindow(Adw.ApplicationWindow):
         self._pending_issue_ids: set[str] = set()
         self._autoheal_enabled = True
         self._last_snap: Optional[HealthSnapshot] = None
+        self._update_status = UpdateStatus(sources=read_sources())
+        self._update_busy = False
 
         self._load_css()
         self._build()
-        GLib.timeout_add_seconds(2, self._refresh)
+        # 3s refresh keeps UI light on modest hardware
+        GLib.timeout_add_seconds(3, self._refresh)
         GLib.idle_add(self._refresh)
 
     def _load_css(self) -> None:
@@ -165,6 +169,7 @@ class VitaHealWindow(Adw.ApplicationWindow):
         self.stack.add_titled(self._build_disk_tab(), "disk", "Disk")
         self.stack.add_titled(self._build_gpu_tab(), "gpu", "GPU")
         self.stack.add_titled(self._build_thermal_tab(), "thermal", "Thermal")
+        self.stack.add_titled(self._build_updates_tab(), "updates", "Updates")
         self.stack.add_titled(self._build_logs_tab(), "logs", "Logs")
         root.append(self.stack)
 
@@ -366,8 +371,56 @@ class VitaHealWindow(Adw.ApplicationWindow):
         page.append(self.therm_list)
         return _scrollable(page)
 
+    def _build_updates_tab(self) -> Gtk.Widget:
+        page = self._page()
+        page.append(_section("SYSTEM UPDATES"))
+
+        tiles = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        tiles.set_homogeneous(True)
+        self.upd_count_tile, self.upd_count_v, self.upd_count_d = _stat_tile("AVAILABLE")
+        self.upd_src_tile, self.upd_src_v, self.upd_src_d = _stat_tile("SOURCES")
+        tiles.append(self.upd_count_tile)
+        tiles.append(self.upd_src_tile)
+        page.append(tiles)
+
+        self.upd_summary = Gtk.Label(label="Press Check Updates to query your apt sources.")
+        self.upd_summary.add_css_class("model-line")
+        self.upd_summary.set_halign(Gtk.Align.START)
+        self.upd_summary.set_wrap(True)
+        self.upd_summary.set_xalign(0)
+        page.append(self.upd_summary)
+
+        btns = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        self.upd_check_btn = Gtk.Button(label="CHECK UPDATES")
+        self.upd_check_btn.add_css_class("cta-primary")
+        self.upd_check_btn.connect("clicked", lambda *_: self._start_update_check(refresh=True))
+        btns.append(self.upd_check_btn)
+
+        self.upd_install_btn = Gtk.Button(label="INSTALL UPDATES")
+        self.upd_install_btn.add_css_class("cta-ghost")
+        self.upd_install_btn.set_sensitive(False)
+        self.upd_install_btn.connect("clicked", lambda *_: self._prompt_install_updates())
+        btns.append(self.upd_install_btn)
+        page.append(btns)
+
+        page.append(_section("CONFIGURED SOURCES (/etc/apt/sources.list*)"))
+        self.upd_sources_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        page.append(self.upd_sources_box)
+
+        page.append(_section("UPGRADABLE PACKAGES"))
+        self.upd_pkg_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        page.append(self.upd_pkg_box)
+
+        # Populate sources immediately (cheap filesystem read)
+        self._paint_update_sources()
+        self.upd_src_v.set_text(str(len(self._update_status.sources)))
+        self.upd_src_d.set_text("from sources.list + sources.list.d")
+        self.upd_count_v.set_text("—")
+        self.upd_count_d.set_text("not checked yet")
+        return _scrollable(page)
+
     def _build_logs_tab(self) -> Gtk.Widget:
-        """Logs has its own inner tabs: Trouble | Heal."""
+        """Logs has inner tabs: Trouble | Heal | Updates."""
         outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         outer.add_css_class("tab-page")
 
@@ -384,19 +437,23 @@ class VitaHealWindow(Adw.ApplicationWindow):
         bar.append(switcher)
         outer.append(bar)
 
-        # Trouble
         t_page = self._page()
         t_page.append(_section("WHAT'S CAUSING TROUBLE"))
         self.trouble_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         t_page.append(self.trouble_box)
         log_stack.add_titled(_scrollable(t_page), "trouble", "Trouble Log")
 
-        # Heal
         h_page = self._page()
         h_page.append(_section("WHAT BOSS-SENTINEL HEALED"))
         self.heal_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         h_page.append(self.heal_box)
         log_stack.add_titled(_scrollable(h_page), "heal", "Heal Log")
+
+        u_page = self._page()
+        u_page.append(_section("SYSTEM UPDATE LOG"))
+        self.update_log_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        u_page.append(self.update_log_box)
+        log_stack.add_titled(_scrollable(u_page), "updates", "Update Log")
 
         outer.append(log_stack)
         return outer
@@ -451,6 +508,7 @@ class VitaHealWindow(Adw.ApplicationWindow):
     def _paint_logs(self) -> None:
         self._clear_box(self.trouble_box)
         self._clear_box(self.heal_box)
+        self._clear_box(self.update_log_box)
 
         snap_issues = self._last_snap.issues if self._last_snap else []
         if snap_issues:
@@ -475,6 +533,170 @@ class VitaHealWindow(Adw.ApplicationWindow):
         else:
             for entry in heals[:80]:
                 self.heal_box.append(self._log_row(entry.clock, entry.title, entry.detail))
+
+        updates = self.events.update
+        if not updates:
+            empty = Gtk.Label(label="No system update activity yet.")
+            empty.add_css_class("log-empty")
+            empty.set_halign(Gtk.Align.START)
+            self.update_log_box.append(empty)
+        else:
+            for entry in updates[:80]:
+                self.update_log_box.append(self._log_row(entry.clock, entry.title, entry.detail))
+
+    def _paint_update_sources(self) -> None:
+        self._clear_box(self.upd_sources_box)
+        sources = self._update_status.sources or read_sources()
+        self._update_status.sources = sources
+        if not sources:
+            empty = Gtk.Label(label="No apt sources found under /etc/apt/.")
+            empty.add_css_class("log-empty")
+            empty.set_halign(Gtk.Align.START)
+            self.upd_sources_box.append(empty)
+            return
+        for src in sources[:40]:
+            flag = "ON" if src.enabled else "OFF"
+            self.upd_sources_box.append(
+                self._kv_row(f"{src.file} [{flag}]", src.line[:90])
+            )
+
+    def _paint_update_packages(self) -> None:
+        self._clear_box(self.upd_pkg_box)
+        pkgs = self._update_status.packages
+        if self._update_status.last_error:
+            err = Gtk.Label(label=self._update_status.last_error)
+            err.add_css_class("log-empty")
+            err.set_halign(Gtk.Align.START)
+            err.set_wrap(True)
+            err.set_xalign(0)
+            self.upd_pkg_box.append(err)
+        if not pkgs:
+            empty = Gtk.Label(label="No upgradable packages (indexes may need refresh).")
+            empty.add_css_class("log-empty")
+            empty.set_halign(Gtk.Align.START)
+            self.upd_pkg_box.append(empty)
+            return
+        for pkg in pkgs[:80]:
+            self.upd_pkg_box.append(
+                self._kv_row(pkg.name, f"{pkg.current} → {pkg.candidate}")
+            )
+
+    def _start_update_check(self, refresh: bool = True) -> None:
+        if self._update_busy:
+            return
+        import threading
+
+        self._update_busy = True
+        self.upd_check_btn.set_sensitive(False)
+        self.upd_install_btn.set_sensitive(False)
+        self.upd_summary.set_text("Checking apt sources…")
+        self.events.note_update(
+            "Checking for updates",
+            "Reading sources.list and querying apt indexes",
+            ok=True,
+        )
+        self._paint_logs()
+
+        def work() -> None:
+            if refresh:
+                result = perform_heal("apt_update")
+                self.events.note_update(
+                    "apt-get update",
+                    result.message + (f" — {result.details}" if result.details else ""),
+                    ok=result.ok,
+                )
+            status = list_upgradable(refresh_index=False)
+            GLib.idle_add(self._finish_update_check, status, True)
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def _finish_update_check(
+        self, status: UpdateStatus, prompt_if_available: bool = True
+    ) -> bool:
+        self._update_status = status
+        self._update_busy = False
+        self.upd_check_btn.set_sensitive(True)
+        self.upd_src_v.set_text(str(len(status.sources)))
+        self.upd_src_d.set_text("from sources.list + sources.list.d")
+        self.upd_count_v.set_text(str(status.count))
+        self.upd_count_d.set_text("upgradable packages")
+        self.upd_summary.set_text(summarize_packages(status.packages))
+        self.upd_install_btn.set_sensitive(status.count > 0)
+        self._paint_update_sources()
+        self._paint_update_packages()
+        self.events.note_update(
+            f"Update check complete — {status.count} available",
+            summarize_packages(status.packages, limit=20),
+            ok=not bool(status.last_error),
+        )
+        self._paint_logs()
+        if status.count > 0:
+            self.toasts.show(f"{status.count} update(s) available", ok=True)
+            if prompt_if_available:
+                self._prompt_install_updates()
+        elif status.last_error:
+            self.toasts.show(status.last_error, ok=False)
+        else:
+            self.toasts.show("System is up to date", ok=True)
+        return False
+
+    def _prompt_install_updates(self) -> None:
+        status = self._update_status
+        if status.count <= 0:
+            self.toasts.show("No updates to install", ok=True)
+            return
+        summary = summarize_packages(status.packages, limit=15)
+
+        def on_decision(yes: bool) -> None:
+            if not yes:
+                self.events.note_update(
+                    "Updates declined",
+                    f"User chose No — {status.count} package(s) left pending",
+                    ok=False,
+                )
+                self._paint_logs()
+                self.toasts.show("Updates declined", ok=False)
+                return
+            self.events.note_update("Installing updates", summary, ok=True)
+            self._paint_logs()
+            self.toasts.show("Installing updates…", ok=True)
+            self.upd_install_btn.set_sensitive(False)
+            self.upd_check_btn.set_sensitive(False)
+            GLib.idle_add(self._run_apt_upgrade)
+
+        ask_confirm(
+            self,
+            "BOSS-SENTINEL — System updates available",
+            f"{summary}\n\n"
+            "These come from your configured apt repositories "
+            "(/etc/apt/sources.list and sources.list.d).\n\n"
+            "Do you want BOSS-Sentinel to install them now?",
+            on_decision,
+            yes_label="Yes — Install updates",
+            no_label="No",
+        )
+
+    def _run_apt_upgrade(self) -> bool:
+        import threading
+
+        def work() -> None:
+            result = perform_heal("apt_upgrade")
+            self.events.note_update(
+                "apt-get upgrade" if result.ok else "Upgrade failed",
+                result.message + (f" — {result.details}" if result.details else ""),
+                ok=result.ok,
+            )
+            status = list_upgradable(refresh_index=False)
+            GLib.idle_add(self._after_upgrade, result.ok, result.message, status)
+
+        threading.Thread(target=work, daemon=True).start()
+        return False
+
+    def _after_upgrade(self, ok: bool, message: str, status: UpdateStatus) -> bool:
+        self.toasts.show(message, ok=ok)
+        self._paint_logs()
+        self._finish_update_check(status, prompt_if_available=False)
+        return False
 
     def _log_row(self, clock: str, title: str, detail: str) -> Gtk.Widget:
         row = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)

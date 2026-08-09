@@ -1,4 +1,4 @@
-"""In-memory + on-disk logs for troubles and heal actions."""
+"""In-memory + on-disk logs for troubles, heals, and system updates."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Deque, Iterable, Literal
 
-Kind = Literal["trouble", "heal"]
+Kind = Literal["trouble", "heal", "update"]
 
 
 @dataclass
@@ -33,13 +33,14 @@ class LogEntry:
 
 
 class EventLog:
-    """Two streams: what is causing trouble, and what VitaHeal healed."""
+    """Streams: trouble, heal, and system update activity."""
 
     def __init__(self, maxlen: int = 200) -> None:
         self._trouble: Deque[LogEntry] = deque(maxlen=maxlen)
         self._heal: Deque[LogEntry] = deque(maxlen=maxlen)
+        self._update: Deque[LogEntry] = deque(maxlen=maxlen)
         self._seen_troubles: set[str] = set()
-        self._path = Path.home() / ".cache" / "vitaheal" / "events.jsonl"
+        self._path = Path.home() / ".cache" / "boss-sentinel" / "events.jsonl"
 
     @property
     def trouble(self) -> list[LogEntry]:
@@ -49,8 +50,11 @@ class EventLog:
     def heal(self) -> list[LogEntry]:
         return list(reversed(self._heal))
 
+    @property
+    def update(self) -> list[LogEntry]:
+        return list(reversed(self._update))
+
     def note_trouble(self, key: str, title: str, detail: str, severity: str = "warn") -> None:
-        # Dedup active keys so we don't spam the log every 2s
         if key in self._seen_troubles:
             return
         self._seen_troubles.add(key)
@@ -65,12 +69,7 @@ class EventLog:
         active = set(active_keys)
         self._seen_troubles &= active
 
-    def note_heal(
-        self,
-        title: str,
-        detail: str,
-        ok: bool = True,
-    ) -> None:
+    def note_heal(self, title: str, detail: str, ok: bool = True) -> None:
         entry = LogEntry(
             "heal",
             title,
@@ -82,6 +81,16 @@ class EventLog:
 
     def note_declined(self, title: str) -> None:
         self.note_heal(f"Declined — {title}", "User chose No", ok=False)
+
+    def note_update(self, title: str, detail: str, ok: bool = True) -> None:
+        entry = LogEntry(
+            "update",
+            title,
+            detail,
+            severity="ok" if ok else "fail",
+        )
+        self._update.append(entry)
+        self._persist(entry)
 
     def _persist(self, entry: LogEntry) -> None:
         try:

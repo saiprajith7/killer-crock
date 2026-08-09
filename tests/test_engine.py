@@ -64,6 +64,18 @@ class EngineTests(unittest.TestCase):
         raw = HealthEngine().snapshot().as_dict()
         json.dumps(raw)
 
+    def test_apt_simulate_parser(self) -> None:
+        from vitaheal.monitor.updates import _parse_simulate_upgrade, read_sources
+
+        sample = (
+            "Inst curl [7.88.1-10] (7.88.1-10+deb12u1 Debian:12.5/stable [amd64])\n"
+            "Conf curl (7.88.1-10+deb12u1 Debian:12.5/stable [amd64])\n"
+        )
+        pkgs = _parse_simulate_upgrade(sample)
+        self.assertEqual(len(pkgs), 1)
+        self.assertEqual(pkgs[0].name, "curl")
+        self.assertTrue(isinstance(read_sources(), list))
+
 
 class HealTests(unittest.TestCase):
     def test_local_simulate_ok(self) -> None:

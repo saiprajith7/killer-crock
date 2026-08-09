@@ -281,6 +281,51 @@ def pause_timers() -> int:
     return emit(True, f"Paused timers: {', '.join(stopped)}")
 
 
+def apt_update() -> int:
+    env = {**os.environ, "DEBIAN_FRONTEND": "noninteractive", "LANG": "C"}
+    try:
+        proc = subprocess.run(
+            ["apt-get", "update", "-qq"],
+            capture_output=True,
+            text=True,
+            timeout=300,
+            env=env,
+            check=False,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        return emit(False, f"apt-get update failed: {exc}")
+    if proc.returncode != 0:
+        return emit(False, "apt-get update failed", (proc.stderr or proc.stdout)[-800:])
+    return emit(True, "Package indexes refreshed from configured sources")
+
+
+def apt_upgrade() -> int:
+    env = {**os.environ, "DEBIAN_FRONTEND": "noninteractive", "LANG": "C"}
+    try:
+        # Refresh first so upgrade uses current sources.list indexes
+        subprocess.run(
+            ["apt-get", "update", "-qq"],
+            capture_output=True,
+            text=True,
+            timeout=300,
+            env=env,
+            check=False,
+        )
+        proc = subprocess.run(
+            ["apt-get", "upgrade", "-y", "-qq"],
+            capture_output=True,
+            text=True,
+            timeout=900,
+            env=env,
+            check=False,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        return emit(False, f"apt-get upgrade failed: {exc}")
+    if proc.returncode != 0:
+        return emit(False, "apt-get upgrade failed", (proc.stderr or proc.stdout)[-800:])
+    return emit(True, "System packages upgraded from apt repositories")
+
+
 ACTIONS = {
     "drop_caches": drop_caches,
     "purge_disk": purge_disk,
@@ -291,6 +336,8 @@ ACTIONS = {
     "gpu_cooldown": gpu_cooldown,
     "reset_swap": reset_swap,
     "pause_timers": pause_timers,
+    "apt_update": apt_update,
+    "apt_upgrade": apt_upgrade,
 }
 
 

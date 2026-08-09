@@ -27,7 +27,7 @@ class HealResult:
     details: str = ""
 
 
-def _run_helper(action: str, *args: str) -> HealResult:
+def _run_helper(action: str, *args: str, timeout: int = 120) -> HealResult:
     helper = HELPER if Path(HELPER).exists() else DEV_HELPER
     if not Path(helper).exists():
         # In-process fallback for demos without packaging
@@ -39,7 +39,7 @@ def _run_helper(action: str, *args: str) -> HealResult:
             cmd,
             capture_output=True,
             text=True,
-            timeout=120,
+            timeout=timeout,
             check=False,
         )
     except FileNotFoundError:
@@ -49,7 +49,7 @@ def _run_helper(action: str, *args: str) -> HealResult:
                 [helper, action, *args],
                 capture_output=True,
                 text=True,
-                timeout=120,
+                timeout=timeout,
                 check=False,
             )
         except OSError as exc:
@@ -85,6 +85,8 @@ def _local_heal(action: str, *args: str) -> HealResult:
         "gpu_cooldown": _local_gpu_cooldown,
         "reset_swap": _local_swap,
         "pause_timers": _local_pause_timers,
+        "apt_update": _local_apt_update,
+        "apt_upgrade": _local_apt_upgrade,
         "simulate_ok": lambda: HealResult(True, "simulate_ok", "Simulation acknowledged"),
     }
     fn = handlers.get(action)
@@ -258,10 +260,27 @@ def _local_pause_timers() -> HealResult:
         return HealResult(True, "pause_timers", "Timer pause skipped (systemd user not available)")
 
 
+def _local_apt_update() -> HealResult:
+    return HealResult(
+        True,
+        "apt_update",
+        "apt-get update requires privileges — install BOSS-Sentinel package / approve pkexec",
+    )
+
+
+def _local_apt_upgrade() -> HealResult:
+    return HealResult(
+        True,
+        "apt_upgrade",
+        "apt-get upgrade requires privileges — install BOSS-Sentinel package / approve pkexec",
+    )
+
+
 def perform_heal(action: str) -> HealResult:
     if action == "simulate_ok":
         return HealResult(True, action, "Simulated heal completed")
-    return _run_helper(action)
+    timeout = 600 if action in {"apt_update", "apt_upgrade"} else 120
+    return _run_helper(action, timeout=timeout)
 
 
 ACTION_LABELS = {
@@ -274,4 +293,6 @@ ACTION_LABELS = {
     "gpu_cooldown": "Force GPU powersave",
     "reset_swap": "Reset swap",
     "pause_timers": "Pause user timers",
+    "apt_update": "Refresh apt indexes",
+    "apt_upgrade": "Install system upgrades",
 }

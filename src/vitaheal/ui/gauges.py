@@ -50,7 +50,7 @@ class DeviceGraph(Gtk.DrawingArea):
         self._history: Deque[float] = deque([0.0] * 60, maxlen=60)
         self._phase = 0.0
         self.set_draw_func(self._draw)
-        GLib.timeout_add(40, self._tick)
+        GLib.timeout_add(100, self._tick)
 
     def update(
         self,
@@ -167,7 +167,7 @@ class HeroVitality(Gtk.DrawingArea):
         self._overall = "ok"
         self._phase = 0.0
         self.set_draw_func(self._draw)
-        GLib.timeout_add(33, self._tick)
+        GLib.timeout_add(50, self._tick)
 
     def set_score(self, score: int, overall: str = "ok") -> None:
         self._score = max(0, min(100, score))
@@ -223,7 +223,7 @@ class BreathWave(Gtk.DrawingArea):
         self._samples: Deque[float] = deque([100.0] * 100, maxlen=100)
         self._phase = 0.0
         self.set_draw_func(self._draw)
-        GLib.timeout_add(50, self._tick)
+        GLib.timeout_add(80, self._tick)
 
     def push(self, score: float) -> None:
         self._samples.append(score)
