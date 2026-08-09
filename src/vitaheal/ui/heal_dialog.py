@@ -22,15 +22,13 @@ class HealConfirmDialog(Adw.MessageDialog):
         issue: Issue,
         on_decision: Callable[[bool], None],
     ) -> None:
-        super().__init__(
-            transient_for=parent,
-            modal=True,
-            heading=f"AUTOHEAL — {issue.title}",
-            body=(
-                f"{issue.description}\n\n"
-                f"Proposed action: {issue.heal_label}\n\n"
-                "Do you want VitaHeal to proceed with this repair?"
-            ),
+        # Construct without kwargs that older Adw may reject, then set props.
+        super().__init__(transient_for=parent, modal=True)
+        self.set_heading(f"AUTOHEAL — {issue.title}")
+        self.set_body(
+            f"{issue.description}\n\n"
+            f"Proposed action: {issue.heal_label}\n\n"
+            "Do you want VitaHeal to proceed with this repair?"
         )
         self._on_decision = on_decision
         self.add_response("no", "No")
