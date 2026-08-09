@@ -60,6 +60,10 @@ class EngineTests(unittest.TestCase):
         self.assertGreaterEqual(topo.logical_threads, topo.physical_cores)
         self.assertTrue(topo.model)
 
+    def test_snapshot_json_serializable(self) -> None:
+        raw = HealthEngine().snapshot().as_dict()
+        json.dumps(raw)
+
 
 class HealTests(unittest.TestCase):
     def test_local_simulate_ok(self) -> None:
