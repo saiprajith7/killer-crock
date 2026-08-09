@@ -1,16 +1,14 @@
-/* VitaHeal HUD — electric teal / acid lime on void carbon
-   Distinctive cyber-medical aesthetic (not purple, not cream, not broadsheet) */
+/* VitaHeal — minimal instrument UI
+   Ink canvas + signal green. Quiet. Precise. Not a Windows checklist. */
 
-@define-color void #05080c;
-@define-color carbon #0b1218;
-@define-color panel #101920;
-@define-color teal #00e5c0;
-@define-color teal-dim #0a6b5c;
-@define-color lime #b8ff3c;
-@define-color amber #ffb020;
-@define-color crimson #ff3b5c;
-@define-color mist #9eb6c4;
-@define-color grid rgba(0, 229, 192, 0.08);
+@define-color ink #0a0c0b;
+@define-color ink-2 #101412;
+@define-color signal #3dff9a;
+@define-color signal-dim #1a7a4c;
+@define-color amber #ff9e33;
+@define-color fault #ff4d6a;
+@define-color mist #b3c2b8;
+@define-color mute #5c6b61;
 
 * {
   font-family: "JetBrains Mono", "Fira Code", "Hack", "IBM Plex Mono", monospace;
@@ -18,216 +16,206 @@
 }
 
 window.vitaheal-window {
-  background-color: @void;
+  background-color: @ink;
 }
 
-.hero-brand {
-  font-family: "JetBrains Mono", "Fira Code", monospace;
+.topbar {
+  background: transparent;
+  padding: 10px 18px 0 18px;
+}
+
+.brand {
   font-weight: 800;
-  font-size: 42px;
-  letter-spacing: 8px;
-  color: @teal;
+  font-size: 22px;
+  letter-spacing: 6px;
+  color: @signal;
 }
 
-.hero-tag {
-  font-size: 13px;
-  letter-spacing: 4px;
-  color: @lime;
-  opacity: 0.9;
-}
-
-.score-value {
-  font-family: "JetBrains Mono", monospace;
-  font-weight: 700;
-  font-size: 72px;
-  color: @lime;
-  letter-spacing: 2px;
-}
-
-.score-label {
-  font-size: 12px;
+.brand-sub {
+  font-size: 11px;
   letter-spacing: 3px;
-  color: @teal;
+  color: @mute;
 }
 
-.hud-panel {
-  background: linear-gradient(160deg, rgba(16, 25, 32, 0.95), rgba(5, 8, 12, 0.98));
-  border: 1px solid rgba(0, 229, 192, 0.28);
+button.close-x {
+  background: transparent;
+  color: @mist;
+  border: 1px solid alpha(@mist, 0.25);
   border-radius: 2px;
-  padding: 16px;
-  box-shadow: inset 0 0 40px rgba(0, 229, 192, 0.04);
+  min-width: 36px;
+  min-height: 36px;
+  font-size: 18px;
+  letter-spacing: 0;
+  padding: 0;
 }
 
-.hud-title {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 14px;
+button.close-x:hover {
+  background: @fault;
+  color: white;
+  border-color: @fault;
+}
+
+.hero {
+  padding: 8px 28px 4px 28px;
+}
+
+.hero-status {
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: @signal;
+}
+
+.hero-status.warn { color: @amber; }
+.hero-status.crit { color: @fault; }
+
+.hero-line {
+  font-size: 13px;
+  color: alpha(@mist, 0.75);
+}
+
+.section-label {
+  font-size: 11px;
   letter-spacing: 3px;
-  color: @teal;
+  color: @mute;
+  padding: 0 0 8px 0;
+}
+
+.device-grid {
+  padding: 4px 20px 8px 20px;
+}
+
+.device-cell {
+  background: alpha(@ink-2, 0.9);
+  border: 1px solid alpha(@signal, 0.12);
+  border-radius: 2px;
+  margin: 4px;
+  padding: 2px;
+}
+
+.logs-row {
+  padding: 8px 20px 20px 20px;
+}
+
+.log-pane {
+  background: alpha(@ink-2, 0.85);
+  border: 1px solid alpha(@signal, 0.12);
+  border-radius: 2px;
+  padding: 12px;
+  min-height: 220px;
+}
+
+.log-pane.trouble {
+  border-left: 2px solid @fault;
+}
+
+.log-pane.heal {
+  border-left: 2px solid @signal;
+}
+
+.log-title {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: @mute;
   margin-bottom: 8px;
 }
 
-.metric-name {
+.log-title.trouble { color: @fault; }
+.log-title.heal { color: @signal; }
+
+.log-row {
+  padding: 6px 0;
+  border-bottom: 1px solid alpha(@mist, 0.06);
+}
+
+.log-time {
+  font-size: 10px;
+  color: @mute;
+  letter-spacing: 1px;
+}
+
+.log-head {
   font-size: 12px;
-  letter-spacing: 2px;
   color: @mist;
 }
 
-.metric-value {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 28px;
-  font-weight: 700;
-  color: @teal;
-}
-
-.metric-value.warn {
-  color: @amber;
-}
-
-.metric-value.crit {
-  color: @crimson;
-  text-shadow: 0 0 12px rgba(255, 59, 92, 0.5);
-}
-
-.metric-detail {
+.log-detail {
   font-size: 11px;
-  color: alpha(@mist, 0.7);
+  color: alpha(@mist, 0.55);
 }
 
-.status-ok {
-  color: @lime;
-}
-
-.status-warn {
-  color: @amber;
-}
-
-.status-crit {
-  color: @crimson;
-}
-
-.scanline {
-  background-image:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 229, 192, 0.03) 2px,
-      rgba(0, 229, 192, 0.03) 4px
-    );
+.log-empty {
+  font-size: 12px;
+  color: @mute;
+  font-style: italic;
 }
 
 button.cta-primary {
-  background: @teal;
-  color: @void;
-  font-family: "JetBrains Mono", monospace;
+  background: @signal;
+  color: @ink;
   font-weight: 700;
   letter-spacing: 2px;
   border: none;
   border-radius: 2px;
-  padding: 10px 18px;
-  min-height: 40px;
+  padding: 8px 14px;
+  min-height: 34px;
 }
 
 button.cta-primary:hover {
-  background: @lime;
-  color: @void;
+  background: #6affb4;
 }
 
 button.cta-ghost {
   background: transparent;
-  color: @teal;
-  border: 1px solid @teal;
+  color: @signal;
+  border: 1px solid alpha(@signal, 0.45);
   border-radius: 2px;
   letter-spacing: 2px;
-  padding: 10px 18px;
+  padding: 8px 14px;
 }
 
 button.cta-ghost:hover {
-  background: rgba(0, 229, 192, 0.12);
+  background: alpha(@signal, 0.08);
 }
 
 button.cta-danger {
-  background: @crimson;
-  color: white;
-  font-family: "JetBrains Mono", monospace;
-  letter-spacing: 2px;
-  border: none;
+  background: transparent;
+  color: @fault;
+  border: 1px solid alpha(@fault, 0.5);
   border-radius: 2px;
-  padding: 10px 18px;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  font-size: 11px;
 }
 
 button.cta-danger:hover {
-  background: #ff6a82;
+  background: @fault;
+  color: white;
 }
 
-.issue-row {
-  background: rgba(255, 59, 92, 0.08);
-  border-left: 3px solid @crimson;
-  padding: 10px 12px;
-  margin: 4px 0;
+.issue-inline {
+  padding: 8px 0;
+  border-bottom: 1px solid alpha(@mist, 0.08);
 }
 
-.issue-row.warn {
-  background: rgba(255, 176, 32, 0.08);
-  border-left-color: @amber;
-}
+.status-ok { color: @signal; }
+.status-warn { color: @amber; }
+.status-crit { color: @fault; }
 
-.pulse-ring {
-  border: 2px solid @teal;
-  border-radius: 999px;
-  min-width: 120px;
-  min-height: 120px;
-}
-
-.ticker {
-  font-size: 11px;
+.footer-meta {
+  font-size: 10px;
   letter-spacing: 1px;
-  color: alpha(@teal, 0.75);
+  color: @mute;
+  padding: 0 24px 16px 24px;
 }
 
-.heal-dialog {
-  background: @carbon;
-  border: 1px solid @amber;
-  border-radius: 2px;
-}
-
-.heal-dialog-title {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 18px;
-  color: @amber;
-  letter-spacing: 2px;
-}
-
-.gauge-track {
-  background: rgba(0, 229, 192, 0.12);
-  border-radius: 1px;
-  min-height: 8px;
-}
-
-.gauge-fill {
-  background: linear-gradient(90deg, @teal, @lime);
-  min-height: 8px;
-  border-radius: 1px;
-}
-
-.gauge-fill.warn {
-  background: linear-gradient(90deg, @amber, #ffd060);
-}
-
-.gauge-fill.crit {
-  background: linear-gradient(90deg, @crimson, #ff7a90);
-}
-
-.header-bar {
-  background: transparent;
+headerbar {
+  background: @ink;
+  color: @mist;
   box-shadow: none;
   border: none;
+  padding: 4px 8px;
 }
 
-.nav-chip {
-  font-size: 11px;
-  letter-spacing: 2px;
-  color: @teal-dim;
-  border: 1px solid rgba(0, 229, 192, 0.25);
-  padding: 4px 10px;
+headerbar button {
+  border-radius: 2px;
 }

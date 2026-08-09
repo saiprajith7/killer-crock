@@ -8,9 +8,12 @@ When a critical fault is detected it **pops up a dialog naming the issue and ask
 
 ## Features
 
+- Minimal instrument UI with live device graphs (RAM, Disk, CPU, GPU, Temp, Swap)
+- Dual logs: **Trouble** (what’s wrong) and **Heal** (what was auto-healed / declined)
+- Explicit **× close** button plus native window close
 - Live vitals: CPU, load, memory, swap, disk, inodes, temperature, **GPU** (NVIDIA/AMD/Intel), network, zombies
-- Cyber-medical HUD UI (Cairo pulse rings, arc gauges, scrolling waveform)
-- Autoheal armed mode → Yes/No confirmation → privileged helper via polkit/`pkexec`
+- Cyber-quiet ink + signal-green aesthetic — asks Yes/No before any heal
+- Autoheal armed mode → confirmation → privileged helper via polkit/`pkexec`
 - Background daemon with desktop notifications that launches the GUI for decisions
 - Proper Debian packaging (`vitaheal` package)
 
@@ -61,8 +64,9 @@ vitaheal/
 │   ├── daemon/
 │   │   └── watcher.py           # headless notifier
 │   └── ui/
-│       ├── style.css            # HUD theme
-│       ├── gauges.py            # Cairo pulse/arc/wave widgets
+│       ├── style.css            # minimal ink / signal theme
+│       ├── gauges.py            # device graphs + vitality
+│       ├── eventlog.py          # trouble + heal logs
 │       ├── heal_dialog.py       # Yes/No autoheal popup
 │       └── window.py            # main window
 └── tests/
