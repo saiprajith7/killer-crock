@@ -9,6 +9,7 @@ dist/
 
 # Debian build artifacts
 debian/vitaheal/
+debian/boss-sentinel/
 debian/.debhelper/
 debian/files
 debian/*.substvars
