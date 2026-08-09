@@ -207,7 +207,7 @@ def _local_thermal() -> HealResult:
     return HealResult(
         True,
         "thermal_cooldown",
-        "Thermal cooldown requires privileges — install VitaHeal package for full heal",
+        "Thermal cooldown requires privileges — install BOSS-Sentinel package for full heal",
     )
 
 
@@ -239,7 +239,7 @@ def _local_swap() -> HealResult:
     return HealResult(
         True,
         "reset_swap",
-        "Swap reset requires privileges — install VitaHeal package for full heal",
+        "Swap reset requires privileges — install BOSS-Sentinel package for full heal",
     )
 
 

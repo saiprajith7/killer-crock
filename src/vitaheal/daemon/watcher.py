@@ -1,6 +1,6 @@
 """Headless background watcher — emits desktop notifications for critical issues.
 
-When run under a graphical session it can open the VitaHeal GUI heal prompt
+When run under a graphical session it can open the BOSS-Sentinel GUI heal prompt
 via the desktop app; otherwise it logs to journal.
 """
 

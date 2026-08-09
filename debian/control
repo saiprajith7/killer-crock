@@ -1,7 +1,7 @@
 Source: boss-sentinel
 Section: utils
 Priority: optional
-Maintainer: BOSS-Sentinel Packagers <boss-sentinel@localhost>
+Maintainer: BOSS-Sentinel Packagers <packagers@boss-sentinel.local>
 Build-Depends: debhelper-compat (= 13),
                dh-python,
                pybuild-plugin-pyproject,
@@ -10,7 +10,7 @@ Build-Depends: debhelper-compat (= 13),
                python3-gi,
                python3-cairo
 Standards-Version: 4.6.2
-Homepage: https://github.com/saiprajith7/killer-crock
+Homepage: https://localhost/boss-sentinel
 Rules-Requires-Root: no
 
 Package: boss-sentinel

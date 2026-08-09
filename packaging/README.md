@@ -4,22 +4,22 @@
 
 ```bash
 sudo apt install -y debhelper dh-python pybuild-plugin-pyproject \
-  python3-all python3-setuptools dpkg-dev
+  python3-all python3-setuptools dpkg-dev fakeroot
 
 ./packaging/build-deb.sh
-# → dist/vitaheal_1.0.0-1_all.deb
+# → dist/boss-sentinel_1.2.0-1_all.deb
 ```
 
 ## What the package installs into the OS
 
 | Path | Purpose |
 |------|---------|
-| `/usr/bin/vitaheal` | GUI launcher |
-| `/usr/bin/vitaheal-daemon` | Background watcher |
-| `/usr/libexec/vitaheal/vitaheal-helper` | Privileged heal helper (pkexec) |
-| `/usr/share/applications/vitaheal.desktop` | App menu entry |
-| `/etc/xdg/autostart/vitaheal-daemon.desktop` | Starts with graphical session |
-| `/usr/lib/systemd/user/vitaheal-daemon.service` | systemd --user unit |
-| `/usr/share/polkit-1/actions/org.vitaheal.policy` | Polkit policy |
+| `/usr/bin/boss-sentinel` | GUI launcher |
+| `/usr/bin/boss-sentinel-daemon` | Background watcher |
+| `/usr/libexec/boss-sentinel/boss-sentinel-helper` | Privileged helper (pkexec) |
+| `/usr/share/applications/boss-sentinel.desktop` | App menu entry |
+| `/etc/xdg/autostart/boss-sentinel-daemon.desktop` | Starts with graphical session |
+| `/usr/lib/systemd/user/boss-sentinel-daemon.service` | systemd --user unit |
+| `/usr/share/polkit-1/actions/org.bosssentinel.policy` | Polkit policy |
 
-After install, VitaHeal is a first-class OS component — not a browser app.
+After install, BOSS-Sentinel is a first-class OS component — not a browser app.

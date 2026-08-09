@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Unit tests for VitaHeal collectors / engine / heal (no GUI)."""
+"""Unit tests for BOSS-Sentinel collectors / engine / heal (no GUI)."""
 
 from __future__ import annotations
 

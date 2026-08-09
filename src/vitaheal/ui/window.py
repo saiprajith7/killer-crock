@@ -1,4 +1,4 @@
-"""Premium tabbed VitaHeal UI — Overview, CPU, Memory, Disk, GPU, Thermal, Logs."""
+"""Premium tabbed BOSS-Sentinel UI — Overview, CPU, Memory, Disk, GPU, Thermal, Logs."""
 
 from __future__ import annotations
 
@@ -73,7 +73,7 @@ def _section(title: str) -> Gtk.Label:
     return lab
 
 
-class VitaHealWindow(Adw.ApplicationWindow):
+class BOSS-SentinelWindow(Adw.ApplicationWindow):
     def __init__(self, app: Adw.Application, simulate: Optional[str] = None) -> None:
         super().__init__(application=app, title=APP_NAME)
         self.set_default_size(1240, 820)

@@ -1,11 +1,10 @@
-# BOSS-Sentinel packages
+# Local packages
 
-- `boss-sentinel_1.2.0-1_all.deb` — install this
-- `boss-sentinel-deb.zip` — same package zipped
-- `download-vitaheal.sh` — downloads both to ~/Downloads
+This folder may hold built `.deb` files for convenience.
+
+Install from the distribution zip:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/vitaheal-pc-monitor-02f6/releases/download-vitaheal.sh)
-sudo apt install ~/Downloads/boss-sentinel_1.2.0-1_all.deb
+sudo apt install ./install/boss-sentinel_1.2.0-1_all.deb
 boss-sentinel
 ```

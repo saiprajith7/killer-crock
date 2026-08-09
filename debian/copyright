@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: boss-sentinel
-Source: https://github.com/saiprajith7/killer-crock
+Source: local
 
 Files: *
 Copyright: 2026 BOSS-Sentinel Contributors

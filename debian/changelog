@@ -3,18 +3,18 @@ boss-sentinel (1.2.0-1) unstable; urgency=medium
   * Add Updates tab wired to apt sources.list with Yes/No install.
   * Add Update Log; keep app lightweight (on-demand apt, slower UI ticks).
 
- -- BOSS-Sentinel Packagers <boss-sentinel@localhost>  Sun, 09 Aug 2026 07:40:00 +0000
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Sun, 09 Aug 2026 07:40:00 +0000
 
 boss-sentinel (1.1.0-1) unstable; urgency=medium
 
   * Rebrand to BOSS-Sentinel with minimal accessible blue theme.
   * Tabbed scrollable UI: Overview, CPU, Memory, Disk, GPU, Thermal, Logs.
 
- -- BOSS-Sentinel Packagers <boss-sentinel@localhost>  Sun, 09 Aug 2026 07:35:00 +0000
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Sun, 09 Aug 2026 07:35:00 +0000
 
-vitaheal (1.0.0-1) unstable; urgency=medium
+boss-sentinel (1.0.0-1) unstable; urgency=medium
 
-  * Initial release of VitaHeal — native PC health monitor with
-    interactive Yes/No autohealing for Debian.
+  * Initial release — native PC health monitor with interactive
+    Yes/No autohealing for Debian.
 
- -- VitaHeal Packagers <vitaheal@localhost>  Sun, 09 Aug 2026 06:30:00 +0000
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Sun, 09 Aug 2026 06:30:00 +0000

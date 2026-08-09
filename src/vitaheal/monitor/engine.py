@@ -130,7 +130,7 @@ class HealthEngine:
         table = {
             MetricKind.CPU: (
                 "CPU overload detected",
-                "Processor utilization is critically high. VitaHeal can "
+                "Processor utilization is critically high. BOSS-Sentinel can "
                 "renice the heaviest non-critical user processes to ease pressure.",
                 "renice_hogs",
                 "Throttle CPU hogs",
@@ -138,7 +138,7 @@ class HealthEngine:
             ),
             MetricKind.MEMORY: (
                 "Memory pressure critical",
-                "Available RAM is nearly exhausted. VitaHeal can drop page "
+                "Available RAM is nearly exhausted. BOSS-Sentinel can drop page "
                 "caches and sync dirty buffers to reclaim memory safely.",
                 "drop_caches",
                 "Drop page caches",
@@ -146,7 +146,7 @@ class HealthEngine:
             ),
             MetricKind.SWAP: (
                 "Swap thrashing",
-                "Swap usage is elevated. VitaHeal can clear unused swap pages "
+                "Swap usage is elevated. BOSS-Sentinel can clear unused swap pages "
                 "by cycling swapoff/swapon (requires confirmation).",
                 "reset_swap",
                 "Reset swap",
@@ -154,7 +154,7 @@ class HealthEngine:
             ),
             MetricKind.DISK: (
                 "Disk nearly full",
-                f"{m.label} is critically full ({m.value}%). VitaHeal can purge "
+                f"{m.label} is critically full ({m.value}%). BOSS-Sentinel can purge "
                 "package caches, journal leftovers, and temp files.",
                 "purge_disk",
                 "Purge caches & temp",
@@ -162,7 +162,7 @@ class HealthEngine:
             ),
             MetricKind.INODE: (
                 "Inode exhaustion",
-                f"{m.label} is running out of inodes. VitaHeal can prune "
+                f"{m.label} is running out of inodes. BOSS-Sentinel can prune "
                 "orphaned temp files under /tmp and /var/tmp.",
                 "prune_tmp",
                 "Prune temp inodes",
@@ -170,7 +170,7 @@ class HealthEngine:
             ),
             MetricKind.TEMP: (
                 "Thermal emergency",
-                "System temperature is dangerously high. VitaHeal can force "
+                "System temperature is dangerously high. BOSS-Sentinel can force "
                 "the CPU frequency governor to powersave to cool down.",
                 "thermal_cooldown",
                 "Force powersave cooling",
@@ -178,7 +178,7 @@ class HealthEngine:
             ),
             MetricKind.GPU: (
                 "GPU overload detected",
-                "Graphics processor utilization is critically high. VitaHeal can "
+                "Graphics processor utilization is critically high. BOSS-Sentinel can "
                 "force a GPU power-save / low-performance profile to cool and free load.",
                 "gpu_cooldown",
                 "Force GPU powersave",
@@ -186,7 +186,7 @@ class HealthEngine:
             ),
             MetricKind.GPU_MEM: (
                 "GPU VRAM exhausted",
-                "Video memory is nearly full. VitaHeal can force a GPU powersave "
+                "Video memory is nearly full. BOSS-Sentinel can force a GPU powersave "
                 "profile and attempt to ease pressure on the graphics stack.",
                 "gpu_cooldown",
                 "Force GPU powersave",
@@ -194,7 +194,7 @@ class HealthEngine:
             ),
             MetricKind.GPU_TEMP: (
                 "GPU thermal emergency",
-                "GPU temperature is dangerously high. VitaHeal can switch the GPU "
+                "GPU temperature is dangerously high. BOSS-Sentinel can switch the GPU "
                 "into a low-power profile to cool down.",
                 "gpu_cooldown",
                 "Force GPU powersave",
@@ -202,7 +202,7 @@ class HealthEngine:
             ),
             MetricKind.ZOMBIE: (
                 "Zombie process swarm",
-                "Many zombie processes are lingering. VitaHeal can signal "
+                "Many zombie processes are lingering. BOSS-Sentinel can signal "
                 "their parent processes (SIGCHLD) to reap them.",
                 "reap_zombies",
                 "Reap zombie parents",
@@ -210,7 +210,7 @@ class HealthEngine:
             ),
             MetricKind.LOAD: (
                 "System load spike",
-                "Load average exceeds core capacity. VitaHeal can pause "
+                "Load average exceeds core capacity. BOSS-Sentinel can pause "
                 "non-essential background timers briefly.",
                 "pause_timers",
                 "Pause user timers",
