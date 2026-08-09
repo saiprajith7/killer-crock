@@ -1,3 +1,10 @@
+boss-sentinel (1.2.1-1) unstable; urgency=medium
+
+  * Fix install failure: restore valid VitaHealWindow class name
+    (rebrand had produced invalid BOSS-SentinelWindow identifier).
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Sun, 09 Aug 2026 07:55:00 +0000
+
 boss-sentinel (1.2.0-1) unstable; urgency=medium
 
   * Add Updates tab wired to apt sources.list with Yes/No install.

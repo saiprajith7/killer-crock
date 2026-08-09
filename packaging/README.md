@@ -7,7 +7,7 @@ sudo apt install -y debhelper dh-python pybuild-plugin-pyproject \
   python3-all python3-setuptools dpkg-dev fakeroot
 
 ./packaging/build-deb.sh
-# → dist/boss-sentinel_1.2.0-1_all.deb
+# → dist/boss-sentinel_1.2.1-1_all.deb
 ```
 
 ## What the package installs into the OS
