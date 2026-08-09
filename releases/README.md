@@ -2,13 +2,16 @@
 
 This folder may hold built `.deb` files for convenience.
 
-Install from the distribution zip:
+Install from the distribution zip (quiet — no apt `_apt` home-dir notice):
 
 ```bash
-# Clear a half-installed broken 1.2.0 first if needed:
-sudo dpkg --remove --force-remove-reinstreq boss-sentinel
-
-sudo apt install ./install/boss-sentinel_1.2.1-1_all.deb
+cd install
+bash install.sh
 boss-sentinel
 ```
 
+If you must clear a half-installed older package first:
+
+```bash
+sudo dpkg --remove --force-remove-reinstreq boss-sentinel
+```

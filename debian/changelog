@@ -1,3 +1,10 @@
+boss-sentinel (1.2.2-1) unstable; urgency=medium
+
+  * Quiet install/launch: install script avoids apt home-dir `_apt` notice;
+    GUI launcher filters harmless libEGL DRI authenticate warnings.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Sun, 09 Aug 2026 08:00:00 +0000
+
 boss-sentinel (1.2.1-1) unstable; urgency=medium
 
   * Fix install failure: restore valid VitaHealWindow class name

@@ -7,7 +7,19 @@ GTK4 desktop app (not web). Minimal blue UI. Tabbed: Overview · CPU · Memory �
 ## Install (recommended)
 
 ```bash
-sudo apt install ./install/boss-sentinel_1.2.1-1_all.deb
+cd install
+bash install.sh
+boss-sentinel
+```
+
+The install script copies the `.deb` to `/tmp` and uses `dpkg`, so you
+do not get apt's `_apt` permission / "unsandboxed as root" notice from
+installing out of your home folder.
+
+Manual install (may print that apt notice if the `.deb` is under `$HOME`):
+
+```bash
+sudo dpkg -i ./install/boss-sentinel_1.2.2-1_all.deb
 boss-sentinel
 ```
 
@@ -15,7 +27,7 @@ If dependencies are missing:
 
 ```bash
 sudo apt -f install
-sudo dpkg -i ./install/boss-sentinel_1.2.1-1_all.deb
+sudo dpkg -i ./install/boss-sentinel_1.2.2-1_all.deb
 boss-sentinel
 ```
 
@@ -36,7 +48,7 @@ boss-sentinel
 sudo apt install -y debhelper dh-python pybuild-plugin-pyproject \
   python3-all python3-setuptools dpkg-dev fakeroot
 make deb
-# output: dist/boss-sentinel_1.2.1-1_all.deb
+# output: dist/boss-sentinel_1.2.2-1_all.deb
 ```
 
 ## Tabs

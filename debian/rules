@@ -11,6 +11,10 @@ override_dh_auto_install:
 	# Privileged helper
 	install -d debian/boss-sentinel/usr/libexec/boss-sentinel
 	install -m 0755 scripts/vitaheal-helper debian/boss-sentinel/usr/libexec/boss-sentinel/boss-sentinel-helper
+	# Quiet GUI launcher (filters Mesa/EGL driver chatter on stderr)
+	install -d debian/boss-sentinel/usr/bin
+	install -m 0755 scripts/boss-sentinel debian/boss-sentinel/usr/bin/boss-sentinel
+	ln -sf boss-sentinel debian/boss-sentinel/usr/bin/vitaheal
 	# Desktop + icon
 	install -d debian/boss-sentinel/usr/share/applications
 	install -m 0644 data/desktop/vitaheal.desktop debian/boss-sentinel/usr/share/applications/boss-sentinel.desktop

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# BOSS-Sentinel GUI launcher — suppress known-harmless Mesa/EGL driver noise.
+set -uo pipefail
+
+_filter_stderr() {
+  while IFS= read -r line || [[ -n "${line}" ]]; do
+    case "${line}" in
+      *"libEGL warning: DRI2: failed to authenticate"*) continue ;;
+      *"libEGL warning: DRI3: failed to authenticate"*) continue ;;
+      *"libEGL warning: failed to create dri2 display"*) continue ;;
+    esac
+    printf '%s\n' "${line}" >&2
+  done
+}
+
+python3 -m vitaheal "$@" 2> >(_filter_stderr)
+exit $?

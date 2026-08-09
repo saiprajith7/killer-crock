@@ -5,6 +5,9 @@ DESTDIR ?=
 
 install:
 	python3 -m pip install --break-system-packages -e .
+	install -d $(DESTDIR)$(PREFIX)/bin
+	install -m 0755 scripts/boss-sentinel $(DESTDIR)$(PREFIX)/bin/boss-sentinel
+	ln -sf boss-sentinel $(DESTDIR)$(PREFIX)/bin/vitaheal
 	install -d $(DESTDIR)$(PREFIX)/libexec/boss-sentinel
 	install -m 0755 scripts/vitaheal-helper $(DESTDIR)$(PREFIX)/libexec/boss-sentinel/boss-sentinel-helper
 	install -d $(DESTDIR)$(PREFIX)/share/applications
