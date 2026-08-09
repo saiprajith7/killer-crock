@@ -1,0 +1,233 @@
+/* VitaHeal HUD — electric teal / acid lime on void carbon
+   Distinctive cyber-medical aesthetic (not purple, not cream, not broadsheet) */
+
+@define-color void #05080c;
+@define-color carbon #0b1218;
+@define-color panel #101920;
+@define-color teal #00e5c0;
+@define-color teal-dim #0a6b5c;
+@define-color lime #b8ff3c;
+@define-color amber #ffb020;
+@define-color crimson #ff3b5c;
+@define-color mist #9eb6c4;
+@define-color grid rgba(0, 229, 192, 0.08);
+
+* {
+  font-family: "JetBrains Mono", "Fira Code", "Hack", "IBM Plex Mono", monospace;
+  color: @mist;
+}
+
+window.vitaheal-window {
+  background-color: @void;
+}
+
+.hero-brand {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-weight: 800;
+  font-size: 42px;
+  letter-spacing: 8px;
+  color: @teal;
+}
+
+.hero-tag {
+  font-size: 13px;
+  letter-spacing: 4px;
+  color: @lime;
+  opacity: 0.9;
+}
+
+.score-value {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  font-size: 72px;
+  color: @lime;
+  letter-spacing: 2px;
+}
+
+.score-label {
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: @teal;
+}
+
+.hud-panel {
+  background: linear-gradient(160deg, rgba(16, 25, 32, 0.95), rgba(5, 8, 12, 0.98));
+  border: 1px solid rgba(0, 229, 192, 0.28);
+  border-radius: 2px;
+  padding: 16px;
+  box-shadow: inset 0 0 40px rgba(0, 229, 192, 0.04);
+}
+
+.hud-title {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 14px;
+  letter-spacing: 3px;
+  color: @teal;
+  margin-bottom: 8px;
+}
+
+.metric-name {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: @mist;
+}
+
+.metric-value {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: @teal;
+}
+
+.metric-value.warn {
+  color: @amber;
+}
+
+.metric-value.crit {
+  color: @crimson;
+  text-shadow: 0 0 12px rgba(255, 59, 92, 0.5);
+}
+
+.metric-detail {
+  font-size: 11px;
+  color: alpha(@mist, 0.7);
+}
+
+.status-ok {
+  color: @lime;
+}
+
+.status-warn {
+  color: @amber;
+}
+
+.status-crit {
+  color: @crimson;
+}
+
+.scanline {
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 229, 192, 0.03) 2px,
+      rgba(0, 229, 192, 0.03) 4px
+    );
+}
+
+button.cta-primary {
+  background: @teal;
+  color: @void;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  letter-spacing: 2px;
+  border: none;
+  border-radius: 2px;
+  padding: 10px 18px;
+  min-height: 40px;
+}
+
+button.cta-primary:hover {
+  background: @lime;
+  color: @void;
+}
+
+button.cta-ghost {
+  background: transparent;
+  color: @teal;
+  border: 1px solid @teal;
+  border-radius: 2px;
+  letter-spacing: 2px;
+  padding: 10px 18px;
+}
+
+button.cta-ghost:hover {
+  background: rgba(0, 229, 192, 0.12);
+}
+
+button.cta-danger {
+  background: @crimson;
+  color: white;
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: 2px;
+  border: none;
+  border-radius: 2px;
+  padding: 10px 18px;
+}
+
+button.cta-danger:hover {
+  background: #ff6a82;
+}
+
+.issue-row {
+  background: rgba(255, 59, 92, 0.08);
+  border-left: 3px solid @crimson;
+  padding: 10px 12px;
+  margin: 4px 0;
+}
+
+.issue-row.warn {
+  background: rgba(255, 176, 32, 0.08);
+  border-left-color: @amber;
+}
+
+.pulse-ring {
+  border: 2px solid @teal;
+  border-radius: 999px;
+  min-width: 120px;
+  min-height: 120px;
+}
+
+.ticker {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: alpha(@teal, 0.75);
+}
+
+.heal-dialog {
+  background: @carbon;
+  border: 1px solid @amber;
+  border-radius: 2px;
+}
+
+.heal-dialog-title {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 18px;
+  color: @amber;
+  letter-spacing: 2px;
+}
+
+.gauge-track {
+  background: rgba(0, 229, 192, 0.12);
+  border-radius: 1px;
+  min-height: 8px;
+}
+
+.gauge-fill {
+  background: linear-gradient(90deg, @teal, @lime);
+  min-height: 8px;
+  border-radius: 1px;
+}
+
+.gauge-fill.warn {
+  background: linear-gradient(90deg, @amber, #ffd060);
+}
+
+.gauge-fill.crit {
+  background: linear-gradient(90deg, @crimson, #ff7a90);
+}
+
+.header-bar {
+  background: transparent;
+  box-shadow: none;
+  border: none;
+}
+
+.nav-chip {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: @teal-dim;
+  border: 1px solid rgba(0, 229, 192, 0.25);
+  padding: 4px 10px;
+}

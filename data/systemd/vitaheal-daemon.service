@@ -1,0 +1,15 @@
+[Unit]
+Description=VitaHeal background health watcher
+Documentation=man:vitaheal(1)
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/vitaheal-daemon --interval 20
+Restart=on-failure
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=default.target

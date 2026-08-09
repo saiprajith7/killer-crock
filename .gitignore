@@ -1,0 +1,23 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pybuild/
+
+# Debian build artifacts
+debian/vitaheal/
+debian/.debhelper/
+debian/files
+debian/*.substvars
+debian/*.debhelper.log
+debian/*.debhelper
+debian/debhelper-build-stamp
+dist/
+
+# Local
+.cache/
+*.log
+.venv/

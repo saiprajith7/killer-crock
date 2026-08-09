@@ -1,0 +1,36 @@
+Source: vitaheal
+Section: utils
+Priority: optional
+Maintainer: VitaHeal Packagers <vitaheal@localhost>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               pybuild-plugin-pyproject,
+               python3-all,
+               python3-setuptools,
+               python3-gi,
+               python3-cairo
+Standards-Version: 4.6.2
+Homepage: https://github.com/saiprajith7/killer-crock
+Rules-Requires-Root: no
+
+Package: vitaheal
+Architecture: all
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         python3-gi,
+         python3-gi-cairo,
+         python3-cairo,
+         gir1.2-gtk-4.0,
+         gir1.2-adw-1,
+         policykit-1,
+         libnotify-bin,
+         fonts-jetbrains-mono | fonts-firacode | fonts-hack
+Recommends: lm-sensors,
+           systemd,
+           apt
+Description: Native PC health monitor with interactive autohealing
+ VitaHeal is a Debian-native GTK4 desktop application that monitors CPU,
+ memory, disk, temperature, network and process health. When a critical
+ fault is detected it pops up a Yes/No dialog before performing any
+ autoheal action. Ships with a systemd user daemon, polkit helper and
+ .desktop launcher so it installs and runs with the OS — not a web app.

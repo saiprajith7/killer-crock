@@ -1,0 +1,6 @@
+vitaheal (1.0.0-1) unstable; urgency=medium
+
+  * Initial release of VitaHeal — native PC health monitor with
+    interactive Yes/No autohealing for Debian.
+
+ -- VitaHeal Packagers <vitaheal@localhost>  Sun, 09 Aug 2026 06:30:00 +0000

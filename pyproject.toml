@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vitaheal"
+version = "1.0.0"
+description = "Native Debian PC health monitor with interactive autohealing"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "GPL-3.0-or-later" }
+authors = [{ name = "VitaHeal" }]
+dependencies = []
+
+[project.scripts]
+vitaheal = "vitaheal.__main__:main"
+vitaheal-daemon = "vitaheal.daemon.watcher:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+vitaheal = ["ui/*.css", "ui/*.ui"]

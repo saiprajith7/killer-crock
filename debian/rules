@@ -1,0 +1,31 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+export PYBUILD_NAME = vitaheal
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_auto_install:
+	dh_auto_install
+	# Privileged helper
+	install -d debian/vitaheal/usr/libexec/vitaheal
+	install -m 0755 scripts/vitaheal-helper debian/vitaheal/usr/libexec/vitaheal/vitaheal-helper
+	# Desktop + icon
+	install -d debian/vitaheal/usr/share/applications
+	install -m 0644 data/desktop/vitaheal.desktop debian/vitaheal/usr/share/applications/
+	install -d debian/vitaheal/usr/share/icons/hicolor/scalable/apps
+	install -m 0644 data/icons/vitaheal.svg debian/vitaheal/usr/share/icons/hicolor/scalable/apps/vitaheal.svg
+	# Polkit
+	install -d debian/vitaheal/usr/share/polkit-1/actions
+	install -m 0644 data/polkit/org.vitaheal.policy debian/vitaheal/usr/share/polkit-1/actions/
+	# systemd user unit
+	install -d debian/vitaheal/usr/lib/systemd/user
+	install -m 0644 data/systemd/vitaheal-daemon.service debian/vitaheal/usr/lib/systemd/user/
+	# Autostart with graphical session
+	install -d debian/vitaheal/etc/xdg/autostart
+	install -m 0644 data/desktop/vitaheal-daemon.desktop debian/vitaheal/etc/xdg/autostart/
+
+override_dh_builddeb:
+	mkdir -p dist
+	dh_builddeb --destdir=dist

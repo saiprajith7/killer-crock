@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=VitaHeal
+GenericName=PC Health Monitor
+Comment=Native PC health monitoring with interactive autohealing
+Exec=vitaheal
+Icon=vitaheal
+Terminal=false
+Type=Application
+Categories=System;Monitor;Utility;
+Keywords=health;monitor;heal;cpu;memory;disk;
+StartupNotify=true
+X-GNOME-UsesNotifications=true

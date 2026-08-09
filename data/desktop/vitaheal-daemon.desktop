@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=VitaHeal Daemon
+Comment=Background PC health watcher for VitaHeal
+Exec=/usr/bin/vitaheal-daemon --interval 20
+Icon=vitaheal
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
+Categories=System;
