@@ -82,6 +82,7 @@ def _local_heal(action: str, *args: str) -> HealResult:
         "renice_hogs": _local_renice,
         "reap_zombies": _local_reap,
         "thermal_cooldown": _local_thermal,
+        "gpu_cooldown": _local_gpu_cooldown,
         "reset_swap": _local_swap,
         "pause_timers": _local_pause_timers,
         "simulate_ok": lambda: HealResult(True, "simulate_ok", "Simulation acknowledged"),
@@ -208,6 +209,30 @@ def _local_thermal() -> HealResult:
     )
 
 
+def _local_gpu_cooldown() -> HealResult:
+    notes: list[str] = []
+    # AMD: try low performance level without root when writable
+    drm = Path("/sys/class/drm")
+    if drm.exists():
+        for card in drm.glob("card[0-9]"):
+            if "-" in card.name:
+                continue
+            level = card / "device" / "power_dpm_force_performance_level"
+            if level.exists() and os.access(level, os.W_OK):
+                try:
+                    level.write_text("low")
+                    notes.append(f"{card.name}=low")
+                except OSError as exc:
+                    notes.append(f"{card.name} failed: {exc}")
+    if notes:
+        return HealResult(True, "gpu_cooldown", "GPU powersave applied", "; ".join(notes))
+    return HealResult(
+        True,
+        "gpu_cooldown",
+        "GPU powersave needs privileges (nvidia-smi / amdgpu) — install package for full heal",
+    )
+
+
 def _local_swap() -> HealResult:
     return HealResult(
         True,
@@ -246,6 +271,7 @@ ACTION_LABELS = {
     "renice_hogs": "Throttle CPU hogs",
     "reap_zombies": "Reap zombie parents",
     "thermal_cooldown": "Force powersave cooling",
+    "gpu_cooldown": "Force GPU powersave",
     "reset_swap": "Reset swap",
     "pause_timers": "Pause user timers",
 }

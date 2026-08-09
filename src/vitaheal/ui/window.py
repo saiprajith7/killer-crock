@@ -130,19 +130,30 @@ class VitaHealWindow(Adw.ApplicationWindow):
         title.set_halign(Gtk.Align.START)
         deck.append(title)
 
-        gauges = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        gauges.set_homogeneous(True)
+        gauges_top = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        gauges_top.set_homogeneous(True)
         self.g_cpu = ArcGauge("CPU")
         self.g_mem = ArcGauge("MEMORY")
         self.g_disk = ArcGauge("DISK")
-        self.g_temp = ArcGauge("TEMP")
-        self.g_net = ArcGauge("NET")
-        for g in (self.g_cpu, self.g_mem, self.g_disk, self.g_temp, self.g_net):
+        for g in (self.g_cpu, self.g_mem, self.g_disk):
             frame = Gtk.Box()
             frame.add_css_class("hud-panel")
             frame.append(g)
-            gauges.append(frame)
-        deck.append(gauges)
+            gauges_top.append(frame)
+        deck.append(gauges_top)
+
+        gauges_bot = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        gauges_bot.set_homogeneous(True)
+        gauges_bot.set_margin_top(8)
+        self.g_temp = ArcGauge("TEMP")
+        self.g_gpu = ArcGauge("GPU")
+        self.g_net = ArcGauge("NET")
+        for g in (self.g_temp, self.g_gpu, self.g_net):
+            frame = Gtk.Box()
+            frame.add_css_class("hud-panel")
+            frame.append(g)
+            gauges_bot.append(frame)
+        deck.append(gauges_bot)
         outer.append(deck)
 
         # —— Issues / heal queue ——
@@ -198,6 +209,9 @@ class VitaHealWindow(Adw.ApplicationWindow):
         if MetricKind.TEMP in by_kind:
             m = by_kind[MetricKind.TEMP]
             self.g_temp.update(m.value, m.unit, m.threshold_warn, m.threshold_crit, "TEMP")
+        if MetricKind.GPU in by_kind:
+            m = by_kind[MetricKind.GPU]
+            self.g_gpu.update(m.value, m.unit, m.threshold_warn, m.threshold_crit, "GPU")
         if MetricKind.NETWORK in by_kind:
             m = by_kind[MetricKind.NETWORK]
             self.g_net.update(m.value, m.unit, 50000, 100000, "NET")

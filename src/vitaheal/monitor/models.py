@@ -23,6 +23,9 @@ class MetricKind(str, Enum):
     ZOMBIE = "zombie"
     SWAP = "swap"
     INODE = "inode"
+    GPU = "gpu"
+    GPU_MEM = "gpu_mem"
+    GPU_TEMP = "gpu_temp"
 
 
 @dataclass

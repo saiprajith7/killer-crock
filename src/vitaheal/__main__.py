@@ -23,7 +23,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--simulate-issue",
-        choices=["cpu", "memory", "disk", "temp", "zombie", "swap"],
+        choices=["cpu", "memory", "disk", "temp", "zombie", "swap", "gpu"],
         help="Inject a fake critical issue for UI / heal demos",
     )
     args = parser.parse_args(argv)

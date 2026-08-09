@@ -23,6 +23,7 @@ class EngineTests(unittest.TestCase):
         self.assertIn(MetricKind.CPU, kinds)
         self.assertIn(MetricKind.MEMORY, kinds)
         self.assertIn(MetricKind.DISK, kinds)
+        self.assertIn(MetricKind.GPU, kinds)
         self.assertTrue(0 <= snap.score <= 100)
 
     def test_simulate_memory_critical(self) -> None:
@@ -38,6 +39,18 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(issue.heal_action, "renice_hogs")
         self.assertIn("CPU", issue.title)
         self.assertTrue(issue.heal_label)
+
+    def test_simulate_gpu_issue(self) -> None:
+        snap = HealthEngine(simulate="gpu").snapshot()
+        gpu = next(m for m in snap.metrics if m.kind == MetricKind.GPU)
+        self.assertEqual(gpu.severity, Severity.CRITICAL)
+        self.assertTrue(any(i.heal_action == "gpu_cooldown" for i in snap.issues))
+
+    def test_gpu_collector_always_returns_reading(self) -> None:
+        from vitaheal.monitor.gpu import GpuCollector
+
+        readings = GpuCollector().read()
+        self.assertTrue(any(m.kind == MetricKind.GPU for m in readings))
 
     def test_snapshot_json_serializable(self) -> None:
         raw = HealthEngine().snapshot().as_dict()
@@ -58,6 +71,7 @@ class HealTests(unittest.TestCase):
         self.assertTrue(helper.exists())
         src = helper.read_text()
         self.assertIn("drop_caches", src)
+        self.assertIn("gpu_cooldown", src)
         compile(src, str(helper), "exec")
 
 

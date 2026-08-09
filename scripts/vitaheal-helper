@@ -165,6 +165,90 @@ def thermal_cooldown() -> int:
     return emit(True, f"Set powersave on {count} CPU(s)")
 
 
+def gpu_cooldown() -> int:
+    """Force GPU into a low-power profile (NVIDIA / AMD)."""
+    details: list[str] = []
+
+    # NVIDIA: set persistence + minimum clocks / power limit floor
+    try:
+        proc = subprocess.run(
+            ["nvidia-smi", "-q"],
+            capture_output=True,
+            text=True,
+            timeout=8,
+        )
+        if proc.returncode == 0:
+            # Enable persistence mode
+            subprocess.run(
+                ["nvidia-smi", "-pm", "1"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+                check=False,
+            )
+            # Drop to lowest supported application clocks when available
+            subprocess.run(
+                ["nvidia-smi", "-rgc"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+                check=False,
+            )
+            # Cap power limit to the board minimum if queryable
+            q = subprocess.run(
+                [
+                    "nvidia-smi",
+                    "--query-gpu=power.min_limit,index",
+                    "--format=csv,noheader,nounits",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=8,
+                check=False,
+            )
+            for line in q.stdout.splitlines():
+                parts = [p.strip() for p in line.split(",")]
+                if len(parts) >= 2 and parts[0] not in {"[N/A]", "N/A", ""}:
+                    try:
+                        mn = float(parts[0])
+                        idx = parts[1]
+                        subprocess.run(
+                            ["nvidia-smi", "-i", idx, "-pl", str(int(mn))],
+                            capture_output=True,
+                            text=True,
+                            timeout=10,
+                            check=False,
+                        )
+                        details.append(f"nvidia[{idx}] power_limit={int(mn)}W")
+                    except ValueError:
+                        pass
+            if not details:
+                details.append("nvidia powersave attempted")
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
+    # AMD amdgpu: force low performance level
+    drm = Path("/sys/class/drm")
+    if drm.exists():
+        for card in sorted(drm.glob("card[0-9]")):
+            if "-" in card.name:
+                continue
+            level = card / "device" / "power_dpm_force_performance_level"
+            if level.exists():
+                try:
+                    level.write_text("low")
+                    details.append(f"{card.name} performance_level=low")
+                except OSError as exc:
+                    details.append(f"{card.name} failed: {exc}")
+
+    if not details:
+        return emit(
+            False,
+            "No NVIDIA/AMD GPU powersave controls available",
+        )
+    return emit(True, "GPU powersave profile applied", "; ".join(details))
+
+
 def reset_swap() -> int:
     try:
         subprocess.run(["swapoff", "-a"], check=True, timeout=60)
@@ -204,6 +288,7 @@ ACTIONS = {
     "renice_hogs": renice_hogs,
     "reap_zombies": reap_zombies,
     "thermal_cooldown": thermal_cooldown,
+    "gpu_cooldown": gpu_cooldown,
     "reset_swap": reset_swap,
     "pause_timers": pause_timers,
 }

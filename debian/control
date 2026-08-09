@@ -30,7 +30,8 @@ Recommends: lm-sensors,
            apt
 Description: Native PC health monitor with interactive autohealing
  VitaHeal is a Debian-native GTK4 desktop application that monitors CPU,
- memory, disk, temperature, network and process health. When a critical
- fault is detected it pops up a Yes/No dialog before performing any
- autoheal action. Ships with a systemd user daemon, polkit helper and
- .desktop launcher so it installs and runs with the OS — not a web app.
+ memory, disk, temperature, GPU (NVIDIA/AMD/Intel), network and process
+ health. When a critical fault is detected it pops up a Yes/No dialog
+ before performing any autoheal action. Ships with a systemd user daemon,
+ polkit helper and .desktop launcher so it installs and runs with the OS
+ — not a web app.

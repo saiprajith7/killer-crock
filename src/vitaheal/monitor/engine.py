@@ -7,6 +7,7 @@ from typing import Optional
 
 from vitaheal.monitor.cpu import CpuCollector
 from vitaheal.monitor.disk import DiskCollector
+from vitaheal.monitor.gpu import GpuCollector
 from vitaheal.monitor.memory import MemoryCollector
 from vitaheal.monitor.models import (
     HealthSnapshot,
@@ -28,6 +29,7 @@ class HealthEngine:
         self.temp = TempCollector()
         self.network = NetworkCollector()
         self.process = ProcessCollector()
+        self.gpu = GpuCollector()
         self.simulate = simulate
 
     def snapshot(self) -> HealthSnapshot:
@@ -36,6 +38,7 @@ class HealthEngine:
         metrics.extend(self.memory.read())
         metrics.extend(self.disk.read())
         metrics.extend(self.temp.read())
+        metrics.extend(self.gpu.read())
         metrics.extend(self.network.read())
         metrics.extend(self.process.read())
 
@@ -75,10 +78,25 @@ class HealthEngine:
             "temp": MetricKind.TEMP,
             "zombie": MetricKind.ZOMBIE,
             "swap": MetricKind.SWAP,
+            "gpu": MetricKind.GPU,
         }
         target = kind_map.get(self.simulate or "")
         if not target:
             return metrics
+        # Ensure a GPU metric exists so simulation works on GPU-less machines
+        if target == MetricKind.GPU and not any(m.kind == MetricKind.GPU for m in metrics):
+            metrics = list(metrics) + [
+                MetricReading(
+                    kind=MetricKind.GPU,
+                    label="GPU",
+                    value=0.0,
+                    unit="%",
+                    severity=Severity.OK,
+                    detail="simulated GPU",
+                    threshold_warn=85,
+                    threshold_crit=95,
+                )
+            ]
         out: list[MetricReading] = []
         for m in metrics:
             if m.kind == target:
@@ -156,6 +174,30 @@ class HealthEngine:
                 "the CPU frequency governor to powersave to cool down.",
                 "thermal_cooldown",
                 "Force powersave cooling",
+                False,
+            ),
+            MetricKind.GPU: (
+                "GPU overload detected",
+                "Graphics processor utilization is critically high. VitaHeal can "
+                "force a GPU power-save / low-performance profile to cool and free load.",
+                "gpu_cooldown",
+                "Force GPU powersave",
+                False,
+            ),
+            MetricKind.GPU_MEM: (
+                "GPU VRAM exhausted",
+                "Video memory is nearly full. VitaHeal can force a GPU powersave "
+                "profile and attempt to ease pressure on the graphics stack.",
+                "gpu_cooldown",
+                "Force GPU powersave",
+                False,
+            ),
+            MetricKind.GPU_TEMP: (
+                "GPU thermal emergency",
+                "GPU temperature is dangerously high. VitaHeal can switch the GPU "
+                "into a low-power profile to cool down.",
+                "gpu_cooldown",
+                "Force GPU powersave",
                 False,
             ),
             MetricKind.ZOMBIE: (

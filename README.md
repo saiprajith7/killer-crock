@@ -8,7 +8,7 @@ When a critical fault is detected it **pops up a dialog naming the issue and ask
 
 ## Features
 
-- Live vitals: CPU, load, memory, swap, disk, inodes, temperature, network, zombies
+- Live vitals: CPU, load, memory, swap, disk, inodes, temperature, **GPU** (NVIDIA/AMD/Intel), network, zombies
 - Cyber-medical HUD UI (Cairo pulse rings, arc gauges, scrolling waveform)
 - Autoheal armed mode → Yes/No confirmation → privileged helper via polkit/`pkexec`
 - Background daemon with desktop notifications that launches the GUI for decisions
@@ -53,6 +53,7 @@ vitaheal/
 │   │   ├── memory.py
 │   │   ├── disk.py
 │   │   ├── temperature.py
+│   │   ├── gpu.py               # NVIDIA / AMD / Intel
 │   │   ├── network.py
 │   │   └── process.py
 │   ├── heal/
@@ -78,6 +79,7 @@ vitaheal/
 | Disk full | `purge_disk` | apt clean, journal vacuum, temp purge |
 | Inode pressure | `prune_tmp` | Prune scratch temps |
 | Thermal | `thermal_cooldown` | Set cpufreq governor to `powersave` |
+| GPU / VRAM / GPU temp | `gpu_cooldown` | NVIDIA power limit / AMD `performance_level=low` |
 | Zombies | `reap_zombies` | SIGCHLD parent processes |
 | Load spike | `pause_timers` | Pause safe apt/fstrim timers |
 

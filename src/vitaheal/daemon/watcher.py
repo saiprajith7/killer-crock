@@ -96,7 +96,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--interval", type=int, default=15)
     parser.add_argument(
         "--simulate-issue",
-        choices=["cpu", "memory", "disk", "temp", "zombie", "swap"],
+        choices=["cpu", "memory", "disk", "temp", "zombie", "swap", "gpu"],
     )
     args = parser.parse_args(argv)
     try:
