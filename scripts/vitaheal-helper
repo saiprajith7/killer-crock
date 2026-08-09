@@ -1,0 +1,360 @@
+#!/usr/bin/env python3
+"""Privileged BOSS-Sentinel helper — invoked via pkexec / polkit.
+
+Outputs a single JSON object on stdout:
+  {"ok": true|false, "message": "...", "details": "..."}
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import signal
+import subprocess
+import sys
+from pathlib import Path
+
+
+def emit(ok: bool, message: str, details: str = "") -> int:
+    print(json.dumps({"ok": ok, "message": message, "details": details}))
+    return 0 if ok else 1
+
+
+def drop_caches() -> int:
+    os.sync()
+    Path("/proc/sys/vm/drop_caches").write_text("3\n")
+    return emit(True, "Page caches dropped (echo 3 > drop_caches)")
+
+
+def purge_disk() -> int:
+    details = []
+    for cmd in (
+        ["apt-get", "clean"],
+        ["journalctl", "--vacuum-size=100M"],
+    ):
+        try:
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
+            details.append(f"{' '.join(cmd)} -> rc={proc.returncode}")
+        except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+            details.append(f"{cmd[0]} skipped: {exc}")
+
+    removed = 0
+    for root in (Path("/tmp"), Path("/var/tmp"), Path("/var/cache/apt/archives")):
+        if not root.exists():
+            continue
+        for p in root.glob("*.tmp"):
+            try:
+                p.unlink()
+                removed += 1
+            except OSError:
+                pass
+        for p in root.glob("vitaheal-*"):
+            try:
+                if p.is_file():
+                    p.unlink()
+                    removed += 1
+            except OSError:
+                pass
+    details.append(f"removed={removed}")
+    return emit(True, "Disk caches and temp files purged", "; ".join(details))
+
+
+def prune_tmp() -> int:
+    removed = 0
+    for root in (Path("/tmp"), Path("/var/tmp")):
+        for p in root.iterdir():
+            name = p.name
+            if name.startswith(".") or name in ("systemd-private",):
+                continue
+            # Only prune clearly stale scratch (empty dirs / known patterns)
+            if name.startswith(("vitaheal-", "tmp.", "scrap-")):
+                try:
+                    if p.is_file():
+                        p.unlink()
+                        removed += 1
+                    elif p.is_dir():
+                        for child in p.rglob("*"):
+                            if child.is_file():
+                                try:
+                                    child.unlink()
+                                except OSError:
+                                    pass
+                        removed += 1
+                except OSError:
+                    pass
+    return emit(True, f"Pruned {removed} temp inode targets")
+
+
+def renice_hogs() -> int:
+    # Find top CPU consumers that are not critical system processes
+    try:
+        out = subprocess.check_output(
+            ["ps", "-eo", "pid,pcpu,comm", "--sort=-pcpu"],
+            text=True,
+            timeout=10,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        return emit(False, f"ps failed: {exc}")
+
+    protected = {
+        "systemd", "kernel", "kworker", "migration", "rcu_", "vitaheal",
+        "Xorg", "gdm", "lightdm", "sshd", "login",
+    }
+    changed = []
+    for line in out.splitlines()[1:12]:
+        parts = line.split(None, 2)
+        if len(parts) < 3:
+            continue
+        pid_s, pcpu_s, comm = parts
+        try:
+            pid = int(pid_s)
+            pcpu = float(pcpu_s)
+        except ValueError:
+            continue
+        if pcpu < 30:
+            continue
+        if any(comm.startswith(p) for p in protected):
+            continue
+        try:
+            os.setpriority(os.PRIO_PROCESS, pid, 15)
+            changed.append(f"{comm}({pid})->{pcpu}%")
+        except OSError:
+            continue
+    if not changed:
+        return emit(True, "No eligible CPU hogs to renice")
+    return emit(True, f"Reniced {len(changed)} process(es)", ", ".join(changed))
+
+
+def reap_zombies() -> int:
+    parents: set[int] = set()
+    for status in Path("/proc").glob("[0-9]*/status"):
+        try:
+            text = status.read_text()
+        except OSError:
+            continue
+        state = ppid = None
+        for line in text.splitlines():
+            if line.startswith("State:"):
+                state = line.split()[1]
+            elif line.startswith("PPid:"):
+                ppid = int(line.split()[1])
+        if state == "Z" and ppid and ppid > 1:
+            parents.add(ppid)
+    signaled = 0
+    for ppid in parents:
+        try:
+            os.kill(ppid, signal.SIGCHLD)
+            signaled += 1
+        except OSError:
+            pass
+    return emit(True, f"Signaled {signaled} parent(s) with SIGCHLD")
+
+
+def thermal_cooldown() -> int:
+    count = 0
+    for cpu in Path("/sys/devices/system/cpu").glob("cpu[0-9]*"):
+        gov = cpu / "cpufreq" / "scaling_governor"
+        if gov.exists():
+            try:
+                gov.write_text("powersave")
+                count += 1
+            except OSError:
+                pass
+    if count == 0:
+        return emit(False, "No cpufreq governors writable")
+    return emit(True, f"Set powersave on {count} CPU(s)")
+
+
+def gpu_cooldown() -> int:
+    """Force GPU into a low-power profile (NVIDIA / AMD)."""
+    details: list[str] = []
+
+    # NVIDIA: set persistence + minimum clocks / power limit floor
+    try:
+        proc = subprocess.run(
+            ["nvidia-smi", "-q"],
+            capture_output=True,
+            text=True,
+            timeout=8,
+        )
+        if proc.returncode == 0:
+            # Enable persistence mode
+            subprocess.run(
+                ["nvidia-smi", "-pm", "1"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+                check=False,
+            )
+            # Drop to lowest supported application clocks when available
+            subprocess.run(
+                ["nvidia-smi", "-rgc"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+                check=False,
+            )
+            # Cap power limit to the board minimum if queryable
+            q = subprocess.run(
+                [
+                    "nvidia-smi",
+                    "--query-gpu=power.min_limit,index",
+                    "--format=csv,noheader,nounits",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=8,
+                check=False,
+            )
+            for line in q.stdout.splitlines():
+                parts = [p.strip() for p in line.split(",")]
+                if len(parts) >= 2 and parts[0] not in {"[N/A]", "N/A", ""}:
+                    try:
+                        mn = float(parts[0])
+                        idx = parts[1]
+                        subprocess.run(
+                            ["nvidia-smi", "-i", idx, "-pl", str(int(mn))],
+                            capture_output=True,
+                            text=True,
+                            timeout=10,
+                            check=False,
+                        )
+                        details.append(f"nvidia[{idx}] power_limit={int(mn)}W")
+                    except ValueError:
+                        pass
+            if not details:
+                details.append("nvidia powersave attempted")
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
+    # AMD amdgpu: force low performance level
+    drm = Path("/sys/class/drm")
+    if drm.exists():
+        for card in sorted(drm.glob("card[0-9]")):
+            if "-" in card.name:
+                continue
+            level = card / "device" / "power_dpm_force_performance_level"
+            if level.exists():
+                try:
+                    level.write_text("low")
+                    details.append(f"{card.name} performance_level=low")
+                except OSError as exc:
+                    details.append(f"{card.name} failed: {exc}")
+
+    if not details:
+        return emit(
+            False,
+            "No NVIDIA/AMD GPU powersave controls available",
+        )
+    return emit(True, "GPU powersave profile applied", "; ".join(details))
+
+
+def reset_swap() -> int:
+    try:
+        subprocess.run(["swapoff", "-a"], check=True, timeout=60)
+        subprocess.run(["swapon", "-a"], check=True, timeout=60)
+    except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        return emit(False, f"Swap reset failed: {exc}")
+    return emit(True, "Swap cycled (swapoff -a && swapon -a)")
+
+
+def pause_timers() -> int:
+    # Stop common heavy user/system timers briefly is risky; instead list & stop
+    # only explicitly safe ones if active.
+    safe = ["apt-daily.timer", "apt-daily-upgrade.timer", "fstrim.timer"]
+    stopped = []
+    for unit in safe:
+        try:
+            proc = subprocess.run(
+                ["systemctl", "is-active", unit],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if proc.stdout.strip() == "active":
+                subprocess.run(["systemctl", "stop", unit], check=False, timeout=10)
+                stopped.append(unit)
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass
+    if not stopped:
+        return emit(True, "No safe timers were active to pause")
+    return emit(True, f"Paused timers: {', '.join(stopped)}")
+
+
+def apt_update() -> int:
+    env = {**os.environ, "DEBIAN_FRONTEND": "noninteractive", "LANG": "C"}
+    try:
+        proc = subprocess.run(
+            ["apt-get", "update", "-qq"],
+            capture_output=True,
+            text=True,
+            timeout=300,
+            env=env,
+            check=False,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        return emit(False, f"apt-get update failed: {exc}")
+    if proc.returncode != 0:
+        return emit(False, "apt-get update failed", (proc.stderr or proc.stdout)[-800:])
+    return emit(True, "Package indexes refreshed from configured sources")
+
+
+def apt_upgrade() -> int:
+    env = {**os.environ, "DEBIAN_FRONTEND": "noninteractive", "LANG": "C"}
+    try:
+        # Refresh first so upgrade uses current sources.list indexes
+        subprocess.run(
+            ["apt-get", "update", "-qq"],
+            capture_output=True,
+            text=True,
+            timeout=300,
+            env=env,
+            check=False,
+        )
+        proc = subprocess.run(
+            ["apt-get", "upgrade", "-y", "-qq"],
+            capture_output=True,
+            text=True,
+            timeout=900,
+            env=env,
+            check=False,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        return emit(False, f"apt-get upgrade failed: {exc}")
+    if proc.returncode != 0:
+        return emit(False, "apt-get upgrade failed", (proc.stderr or proc.stdout)[-800:])
+    return emit(True, "System packages upgraded from apt repositories")
+
+
+ACTIONS = {
+    "drop_caches": drop_caches,
+    "purge_disk": purge_disk,
+    "prune_tmp": prune_tmp,
+    "renice_hogs": renice_hogs,
+    "reap_zombies": reap_zombies,
+    "thermal_cooldown": thermal_cooldown,
+    "gpu_cooldown": gpu_cooldown,
+    "reset_swap": reset_swap,
+    "pause_timers": pause_timers,
+    "apt_update": apt_update,
+    "apt_upgrade": apt_upgrade,
+}
+
+
+def main(argv: list[str]) -> int:
+    if os.geteuid() != 0:
+        return emit(False, "Helper must run as root (via pkexec)")
+    if len(argv) < 2:
+        return emit(False, "Usage: vitaheal-helper <action>")
+    action = argv[1]
+    fn = ACTIONS.get(action)
+    if not fn:
+        return emit(False, f"Unknown action: {action}")
+    try:
+        return fn()
+    except Exception as exc:  # noqa: BLE001
+        return emit(False, f"Unhandled error: {exc}")
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
