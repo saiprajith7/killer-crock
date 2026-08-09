@@ -5,7 +5,7 @@ case "$1" in
     remove|deconfigure)
         if [ -n "${SUDO_USER:-}" ] && command -v systemctl >/dev/null 2>&1; then
             sudo -u "$SUDO_USER" XDG_RUNTIME_DIR="/run/user/$(id -u "$SUDO_USER")" \
-                systemctl --user disable --now vitaheal-daemon.service >/dev/null 2>&1 || true
+                systemctl --user disable --now boss-sentinel-daemon.service >/dev/null 2>&1 || true
         fi
         ;;
 esac

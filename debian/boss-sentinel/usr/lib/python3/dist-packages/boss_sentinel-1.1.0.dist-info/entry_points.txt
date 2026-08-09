@@ -1,0 +1,5 @@
+[console_scripts]
+boss-sentinel = vitaheal.__main__:main
+boss-sentinel-daemon = vitaheal.daemon.watcher:main
+vitaheal = vitaheal.__main__:main
+vitaheal-daemon = vitaheal.daemon.watcher:main

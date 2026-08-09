@@ -1,7 +1,7 @@
-Source: vitaheal
+Source: boss-sentinel
 Section: utils
 Priority: optional
-Maintainer: VitaHeal Packagers <vitaheal@localhost>
+Maintainer: BOSS-Sentinel Packagers <boss-sentinel@localhost>
 Build-Depends: debhelper-compat (= 13),
                dh-python,
                pybuild-plugin-pyproject,
@@ -13,7 +13,7 @@ Standards-Version: 4.6.2
 Homepage: https://github.com/saiprajith7/killer-crock
 Rules-Requires-Root: no
 
-Package: vitaheal
+Package: boss-sentinel
 Architecture: all
 Depends: ${python3:Depends},
          ${misc:Depends},
@@ -28,10 +28,11 @@ Depends: ${python3:Depends},
 Recommends: lm-sensors,
            systemd,
            apt
-Description: Native PC health monitor with interactive autohealing
- VitaHeal is a Debian-native GTK4 desktop application that monitors CPU,
- memory, disk, temperature, GPU (NVIDIA/AMD/Intel), network and process
- health. When a critical fault is detected it pops up a Yes/No dialog
- before performing any autoheal action. Ships with a systemd user daemon,
- polkit helper and .desktop launcher so it installs and runs with the OS
- — not a web app.
+Replaces: vitaheal
+Conflicts: vitaheal
+Provides: vitaheal
+Description: BOSS-Sentinel — PC health monitor with interactive autohealing
+ BOSS-Sentinel is a Debian-native GTK4 desktop application that monitors
+ CPU, memory, disk, temperature, GPU, network and process health in a
+ minimal blue UI. Critical faults ask Yes/No before autoheal. Ships with
+ a systemd user daemon, polkit helper and desktop launcher.
