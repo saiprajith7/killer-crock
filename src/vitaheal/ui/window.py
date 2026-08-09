@@ -49,18 +49,17 @@ class VitaHealWindow(Adw.ApplicationWindow):
         )
 
     def _build(self) -> None:
-        # Native titlebar close (window manager X) + our explicit X
-        header = Gtk.HeaderBar()
-        header.set_show_title_buttons(True)
-        header.add_css_class("header-bar")
-        title = Gtk.Label(label="VitaHeal")
-        title.add_css_class("brand-sub")
-        header.set_title_widget(title)
-        self.set_titlebar(header)
+        # Adw.ApplicationWindow does NOT support gtk_window_set_titlebar()
+        # (crashes on Debian bookworm / libadwaita 1.2). Use an in-content
+        # top bar with an explicit × close button instead.
 
         self.toast_overlay = Adw.ToastOverlay()
         self.toasts = HealResultToast(self.toast_overlay)
-        self.set_content(self.toast_overlay)
+        # Adw 1.4+ uses set_content(); Bookworm (1.2) uses set_child().
+        if hasattr(self, "set_content"):
+            self.set_content(self.toast_overlay)
+        else:
+            self.set_child(self.toast_overlay)
 
         root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.toast_overlay.set_child(root)
