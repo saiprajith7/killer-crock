@@ -73,7 +73,7 @@ def _section(title: str) -> Gtk.Label:
     return lab
 
 
-class BOSS-SentinelWindow(Adw.ApplicationWindow):
+class VitaHealWindow(Adw.ApplicationWindow):
     def __init__(self, app: Adw.Application, simulate: Optional[str] = None) -> None:
         super().__init__(application=app, title=APP_NAME)
         self.set_default_size(1240, 820)
