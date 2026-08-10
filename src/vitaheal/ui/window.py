@@ -17,7 +17,7 @@ from vitaheal.monitor.engine import HealthEngine
 from vitaheal.monitor.models import HealthSnapshot, Issue, MetricKind, Severity
 from vitaheal.monitor.updates import UpdateStatus, list_upgradable, read_sources, summarize_packages
 from vitaheal.ui.eventlog import EventLog
-from vitaheal.ui.gauges import BreathWave, DeviceGraph, HeroVitality
+from vitaheal.ui.gauges import BreathWave, DeviceGraph, HeroVitality, PerCpuMonitor
 from vitaheal.ui.heal_dialog import HealResultToast, ask_confirm, ask_heal
 
 CSS_PATH = Path(__file__).with_name("style.css")
@@ -243,6 +243,9 @@ class VitaHealWindow(Adw.ApplicationWindow):
             row2.append(cell)
         page.append(row2)
 
+        self.ov_per_cpu = PerCpuMonitor("INDIVIDUAL CPUS")
+        page.append(self.ov_per_cpu)
+
         page.append(_section("ACTIVE ISSUES"))
         self.overview_issues = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
         page.append(self.overview_issues)
@@ -280,9 +283,8 @@ class VitaHealWindow(Adw.ApplicationWindow):
         cell.append(self.cpu_graph)
         page.append(cell)
 
-        page.append(_section("PER-CORE USAGE"))
-        self.core_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        page.append(self.core_box)
+        self.cpu_per_cpu = PerCpuMonitor("INDIVIDUAL CPUS")
+        page.append(self.cpu_per_cpu)
         return _scrollable(page)
 
     def _build_memory_tab(self) -> Gtk.Widget:
@@ -794,15 +796,10 @@ class VitaHealWindow(Adw.ApplicationWindow):
             self.cpu_load_d.set_text(f"5m {topo.load5:.2f} · 15m {topo.load15:.2f}")
         self.cpu_model.set_text(topo.model)
 
-        self._clear_box(self.core_box)
-        if topo.per_core:
-            for i, pct in enumerate(topo.per_core):
-                self.core_box.append(self._core_bar(i, pct))
-        else:
-            empty = Gtk.Label(label="Per-core stats unavailable on this host.")
-            empty.add_css_class("log-empty")
-            empty.set_halign(Gtk.Align.START)
-            self.core_box.append(empty)
+        warn = cpu.threshold_warn if cpu else 80.0
+        crit = cpu.threshold_crit if cpu else 95.0
+        self.ov_per_cpu.update(topo.per_core, warn=warn, crit=crit)
+        self.cpu_per_cpu.update(topo.per_core, warn=warn, crit=crit)
 
         # Disk list
         self._clear_box(self.disk_tiles)

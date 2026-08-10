@@ -253,3 +253,117 @@ class BreathWave(Gtk.DrawingArea):
             else:
                 cr.line_to(x, y)
         cr.stroke()
+
+
+class CpuCoreMeter(Gtk.Box):
+    """One logical CPU: label, bar, percent — updated in place."""
+
+    def __init__(self, index: int) -> None:
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        self.add_css_class("cpu-core-meter")
+        self.set_hexpand(True)
+        self._index = index
+
+        head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        self._lab = Gtk.Label(label=f"CPU{index}")
+        self._lab.add_css_class("core-label")
+        self._lab.set_halign(Gtk.Align.START)
+        self._lab.set_hexpand(True)
+        self._val = Gtk.Label(label="0%")
+        self._val.add_css_class("core-val")
+        self._val.set_halign(Gtk.Align.END)
+        head.append(self._lab)
+        head.append(self._val)
+
+        self._bar = Gtk.LevelBar()
+        self._bar.set_min_value(0.0)
+        self._bar.set_max_value(100.0)
+        self._bar.set_value(0.0)
+        self._bar.set_mode(Gtk.LevelBarMode.CONTINUOUS)
+        self._bar.add_css_class("core-bar")
+        self._bar.set_hexpand(True)
+        try:
+            self._bar.add_offset_value("warning", 80.0)
+            self._bar.add_offset_value("error", 95.0)
+        except Exception:  # noqa: BLE001
+            pass
+
+        self.append(head)
+        self.append(self._bar)
+
+    def set_usage(self, pct: float, warn: float = 80.0, crit: float = 95.0) -> None:
+        pct = max(0.0, min(100.0, float(pct)))
+        self._bar.set_value(pct)
+        self._val.set_text(f"{pct:.0f}%")
+        for cls in ("core-ok", "core-warn", "core-crit"):
+            self.remove_css_class(cls)
+            self._bar.remove_css_class(cls)
+        if pct >= crit:
+            self.add_css_class("core-crit")
+            self._bar.add_css_class("core-crit")
+        elif pct >= warn:
+            self.add_css_class("core-warn")
+            self._bar.add_css_class("core-warn")
+        else:
+            self.add_css_class("core-ok")
+            self._bar.add_css_class("core-ok")
+
+
+class PerCpuMonitor(Gtk.Box):
+    """Grid of individual logical-CPU meters (CPU0…CPUn)."""
+
+    def __init__(self, title: str = "INDIVIDUAL CPUS") -> None:
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        self.add_css_class("per-cpu-monitor")
+        self._title = Gtk.Label(label=title)
+        self._title.add_css_class("section-label")
+        self._title.set_halign(Gtk.Align.START)
+        self.append(self._title)
+
+        self._empty = Gtk.Label(label="Per-CPU stats unavailable on this host.")
+        self._empty.add_css_class("log-empty")
+        self._empty.set_halign(Gtk.Align.START)
+        self.append(self._empty)
+
+        self._flow = Gtk.FlowBox()
+        self._flow.set_selection_mode(Gtk.SelectionMode.NONE)
+        self._flow.set_homogeneous(True)
+        self._flow.set_max_children_per_line(4)
+        self._flow.set_min_children_per_line(1)
+        self._flow.set_row_spacing(8)
+        self._flow.set_column_spacing(10)
+        self._flow.set_hexpand(True)
+        self.append(self._flow)
+
+        self._meters: list[CpuCoreMeter] = []
+
+    def update(
+        self,
+        per_core: list[float],
+        warn: float = 80.0,
+        crit: float = 95.0,
+    ) -> None:
+        if not per_core:
+            self._empty.set_visible(True)
+            self._flow.set_visible(False)
+            return
+
+        self._empty.set_visible(False)
+        self._flow.set_visible(True)
+
+        n = len(per_core)
+        cols = 4 if n >= 4 else max(1, n)
+        if n > 16:
+            cols = 6
+        self._flow.set_max_children_per_line(cols)
+
+        while len(self._meters) < n:
+            meter = CpuCoreMeter(len(self._meters))
+            self._meters.append(meter)
+            self._flow.append(meter)
+        while len(self._meters) > n:
+            meter = self._meters.pop()
+            self._flow.remove(meter)
+
+        for i, pct in enumerate(per_core):
+            self._meters[i].set_usage(pct, warn=warn, crit=crit)

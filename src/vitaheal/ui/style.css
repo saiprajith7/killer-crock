@@ -199,20 +199,44 @@ button.close-x:hover {
 }
 
 .core-row { padding: 4px 0; }
-.core-label { font-size: 11px; color: @mute; }
-.core-val { font-size: 11px; color: @blue-deep; }
+.core-label { font-size: 11px; color: @mute; letter-spacing: 1px; }
+.core-val { font-size: 12px; font-weight: 700; color: @blue-deep; }
+
+.per-cpu-monitor {
+  padding: 4px 0 8px 0;
+}
+
+.cpu-core-meter {
+  background: @surface;
+  padding: 10px 12px;
+  border: 1px solid alpha(@ink, 0.08);
+  border-radius: 4px;
+  min-width: 140px;
+}
 
 levelbar.core-bar trough {
   background: @blue-soft;
   border-radius: 2px;
-  min-height: 8px;
+  min-height: 10px;
 }
 
-levelbar.core-bar block {
+levelbar.core-bar block,
+levelbar.core-bar.core-ok block {
   background: @blue;
   border-radius: 2px;
-  min-height: 8px;
+  min-height: 10px;
 }
+
+levelbar.core-bar.core-warn block {
+  background: @amber;
+}
+
+levelbar.core-bar.core-crit block {
+  background: @fault;
+}
+
+.cpu-core-meter.core-warn .core-val { color: @amber; }
+.cpu-core-meter.core-crit .core-val { color: @fault; }
 
 .log-row {
   padding: 8px 0;

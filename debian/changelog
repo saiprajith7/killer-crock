@@ -1,3 +1,10 @@
+boss-sentinel (1.2.4-1) unstable; urgency=medium
+
+  * Show individual logical CPUs (CPU0…CPUn) on Overview and CPU tabs
+    with live per-CPU bars and percent labels.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 04:40:00 +0000
+
 boss-sentinel (1.2.3-1) unstable; urgency=medium
 
   * Fix inflated CPU readings vs System Monitor: correct /proc/stat

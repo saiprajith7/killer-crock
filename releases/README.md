@@ -10,6 +10,8 @@ bash install.sh
 boss-sentinel
 ```
 
+Current package: **boss-sentinel 1.2.4** (CPU utilization aligned with System Monitor).
+
 If you must clear a half-installed older package first:
 
 ```bash
