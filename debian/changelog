@@ -1,3 +1,10 @@
+boss-sentinel (1.2.9-1) unstable; urgency=medium
+
+  * Soften Depends for ISO installs: modern pkexec/polkitd alternatives;
+    move fonts and libnotify-bin to Recommends so dpkg -i can configure.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 09:40:00 +0000
+
 boss-sentinel (1.2.8-1) unstable; urgency=medium
 
   * Fix AttributeError on launch: restore missing _build_topbar method.
