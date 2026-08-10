@@ -57,7 +57,7 @@ run_check() {
 # ---------------------------------------------------------------------------
 section "1. Environment"
 # ---------------------------------------------------------------------------
-run_check "python3 available" command -v python3 >/dev/null
+run_check "python3 available" bash -c 'command -v python3 >/dev/null'
 run_check "project src/ exists" test -d "$ROOT/src/vitaheal"
 run_check "helper script exists" test -f "$ROOT/scripts/vitaheal-helper"
 python3 - <<'PY' && ok "import vitaheal package" || bad "import vitaheal package"

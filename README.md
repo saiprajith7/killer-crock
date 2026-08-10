@@ -51,7 +51,22 @@ make deb
 # output: dist/boss-sentinel_1.2.5-1_all.deb
 ```
 
-## Tabs
+## Tests
+
+```bash
+# Full application test suite (recommended)
+bash scripts/test-boss-sentinel.sh
+
+# Faster (skip .deb inspection)
+bash scripts/test-boss-sentinel.sh --quick
+
+# Also probe an installed system package
+bash scripts/test-boss-sentinel.sh --installed
+
+# Or via Make
+make test-script
+make test              # unittest only
+```
 
 | Tab | Contents |
 |-----|----------|
