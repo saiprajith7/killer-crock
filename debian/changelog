@@ -1,3 +1,10 @@
+boss-sentinel (1.2.5-1) unstable; urgency=medium
+
+  * Match GNOME System Monitor CPU math (iowait as busy) and show
+    multi-line CPU1…CPUn history graph with live legend percentages.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 04:45:00 +0000
+
 boss-sentinel (1.2.4-1) unstable; urgency=medium
 
   * Show individual logical CPUs (CPU0…CPUn) on Overview and CPU tabs

@@ -265,7 +265,7 @@ class CpuCoreMeter(Gtk.Box):
         self._index = index
 
         head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        self._lab = Gtk.Label(label=f"CPU{index}")
+        self._lab = Gtk.Label(label=f"CPU{index + 1}")
         self._lab.add_css_class("core-label")
         self._lab.set_halign(Gtk.Align.START)
         self._lab.set_hexpand(True)
@@ -367,3 +367,107 @@ class PerCpuMonitor(Gtk.Box):
 
         for i, pct in enumerate(per_core):
             self._meters[i].set_usage(pct, warn=warn, crit=crit)
+
+
+# Colors similar to GNOME System Monitor Resources (cycling).
+_CPU_LINE_COLORS: list[tuple[float, float, float]] = [
+    (0.80, 0.00, 0.00),  # red — CPU1
+    (0.90, 0.45, 0.00),  # orange — CPU2
+    (0.15, 0.39, 0.92),  # blue
+    (0.02, 0.59, 0.41),  # green
+    (0.55, 0.25, 0.75),  # purple
+    (0.85, 0.20, 0.55),  # pink
+    (0.10, 0.55, 0.70),  # teal
+    (0.40, 0.40, 0.45),  # slate
+]
+
+
+class MultiCpuGraph(Gtk.DrawingArea):
+    """System Monitor–style history: one colored line per logical CPU."""
+
+    def __init__(self, history: int = 60) -> None:
+        super().__init__()
+        self.set_content_width(640)
+        self.set_content_height(220)
+        self.set_hexpand(True)
+        self.set_vexpand(False)
+        self._history_len = history
+        self._series: list[Deque[float]] = []
+        self._current: list[float] = []
+        self.set_draw_func(self._draw)
+
+    def update(self, per_core: list[float]) -> None:
+        n = len(per_core)
+        while len(self._series) < n:
+            self._series.append(deque([0.0] * self._history_len, maxlen=self._history_len))
+        while len(self._series) > n:
+            self._series.pop()
+        self._current = [max(0.0, min(100.0, float(p))) for p in per_core]
+        for i, pct in enumerate(self._current):
+            self._series[i].append(pct)
+        self.queue_draw()
+
+    def _draw(self, _area: Gtk.DrawingArea, cr: cairo.Context, w: int, h: int) -> None:
+        cr.set_source_rgb(*SURFACE)
+        cr.rectangle(0, 0, w, h)
+        cr.fill()
+
+        pad_l, pad_r, pad_t, pad_b = 14, 14, 36, 28
+        gw = max(1.0, w - pad_l - pad_r)
+        gh = max(1.0, h - pad_t - pad_b)
+
+        # Grid
+        cr.set_line_width(1)
+        cr.set_source_rgba(0.15, 0.23, 0.37, 0.12)
+        for frac in (0.0, 0.25, 0.5, 0.75, 1.0):
+            y = pad_t + gh * (1.0 - frac)
+            cr.move_to(pad_l, y)
+            cr.line_to(pad_l + gw, y)
+            cr.stroke()
+
+        cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+        cr.set_font_size(11)
+        cr.set_source_rgb(*MUTED)
+        cr.move_to(pad_l, 22)
+        cr.show_text("CPU HISTORY · LAST 60 SAMPLES")
+
+        if not self._series:
+            cr.move_to(pad_l, pad_t + 24)
+            cr.show_text("Waiting for per-CPU samples…")
+            return
+
+        # Lines
+        for idx, series in enumerate(self._series):
+            color = _CPU_LINE_COLORS[idx % len(_CPU_LINE_COLORS)]
+            pts = list(series)
+            if len(pts) < 2:
+                continue
+            cr.set_line_width(2.0)
+            cr.set_source_rgb(*color)
+            for i, val in enumerate(pts):
+                x = pad_l + (i / (len(pts) - 1)) * gw
+                y = pad_t + (1.0 - val / 100.0) * gh
+                if i == 0:
+                    cr.move_to(x, y)
+                else:
+                    cr.line_to(x, y)
+            cr.stroke()
+
+        # Legend (CPU1… like GNOME System Monitor)
+        cr.set_font_size(12)
+        lx = pad_l
+        ly = h - 10
+        for idx, pct in enumerate(self._current):
+            color = _CPU_LINE_COLORS[idx % len(_CPU_LINE_COLORS)]
+            label = f"CPU{idx + 1}: {pct:.1f}%"
+            cr.set_source_rgb(*color)
+            cr.rectangle(lx, ly - 9, 10, 10)
+            cr.fill()
+            cr.set_source_rgb(*MIST)
+            cr.move_to(lx + 14, ly)
+            cr.show_text(label)
+            ext = cr.text_extents(label)
+            lx += ext.width + 36
+            if lx > w - 120 and idx < len(self._current) - 1:
+                lx = pad_l
+                ly -= 16

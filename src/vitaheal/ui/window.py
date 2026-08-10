@@ -17,7 +17,7 @@ from vitaheal.monitor.engine import HealthEngine
 from vitaheal.monitor.models import HealthSnapshot, Issue, MetricKind, Severity
 from vitaheal.monitor.updates import UpdateStatus, list_upgradable, read_sources, summarize_packages
 from vitaheal.ui.eventlog import EventLog
-from vitaheal.ui.gauges import BreathWave, DeviceGraph, HeroVitality, PerCpuMonitor
+from vitaheal.ui.gauges import BreathWave, DeviceGraph, HeroVitality, MultiCpuGraph, PerCpuMonitor
 from vitaheal.ui.heal_dialog import HealResultToast, ask_confirm, ask_heal
 
 CSS_PATH = Path(__file__).with_name("style.css")
@@ -276,15 +276,23 @@ class VitaHealWindow(Adw.ApplicationWindow):
         self.cpu_model.set_xalign(0)
         page.append(self.cpu_model)
 
-        page.append(_section("LIVE GRAPH"))
+        # System Monitor–style per-CPU history (primary view).
+        page.append(_section("CPU HISTORY"))
+        self.cpu_multi_graph = MultiCpuGraph()
+        multi_cell = Gtk.Box()
+        multi_cell.add_css_class("device-cell")
+        multi_cell.append(self.cpu_multi_graph)
+        page.append(multi_cell)
+
+        self.cpu_per_cpu = PerCpuMonitor("INDIVIDUAL CPUS")
+        page.append(self.cpu_per_cpu)
+
+        page.append(_section("OVERALL"))
         self.cpu_graph = DeviceGraph("CPU")
         cell = Gtk.Box()
         cell.add_css_class("device-cell")
         cell.append(self.cpu_graph)
         page.append(cell)
-
-        self.cpu_per_cpu = PerCpuMonitor("INDIVIDUAL CPUS")
-        page.append(self.cpu_per_cpu)
         return _scrollable(page)
 
     def _build_memory_tab(self) -> Gtk.Widget:
@@ -800,6 +808,7 @@ class VitaHealWindow(Adw.ApplicationWindow):
         crit = cpu.threshold_crit if cpu else 95.0
         self.ov_per_cpu.update(topo.per_core, warn=warn, crit=crit)
         self.cpu_per_cpu.update(topo.per_core, warn=warn, crit=crit)
+        self.cpu_multi_graph.update(topo.per_core)
 
         # Disk list
         self._clear_box(self.disk_tiles)
