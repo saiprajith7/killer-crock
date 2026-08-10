@@ -1,4 +1,4 @@
-.PHONY: install run run-sim test deb clean lint
+.PHONY: install run run-sim test test-script test-script-quick deb clean lint
 
 PREFIX ?= /usr
 DESTDIR ?=
@@ -29,6 +29,12 @@ run-sim:
 
 test:
 	BOSS_SENTINEL_CPU_SAMPLE=0.05 PYTHONPATH=src python3 -m unittest discover -s tests -v
+
+test-script:
+	bash scripts/test-boss-sentinel.sh
+
+test-script-quick:
+	bash scripts/test-boss-sentinel.sh --quick
 
 deb:
 	bash packaging/build-deb.sh
