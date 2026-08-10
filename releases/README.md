@@ -1,36 +1,20 @@
 # BOSS-Sentinel releases
 
-Current package: **boss-sentinel 1.2.11**
+Current package: **boss-sentinel 1.2.12** (single-file install)
 
-## Install on a running PC (recommended)
-
-`dpkg -i` alone **cannot** download dependencies. Use the installer (or apt):
+## One command install
 
 ```bash
 cd ~/Downloads
-curl -L -o boss-sentinel_1.2.11-1_all.deb \
-  https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/fix-invalid-class-name-02f6/releases/boss-sentinel_1.2.11-1_all.deb
-curl -L -o install.sh \
-  https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/fix-invalid-class-name-02f6/scripts/install-boss-sentinel.sh
-bash install.sh
+curl -L -o boss-sentinel_1.2.12-1_all.deb \
+  https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/fix-invalid-class-name-02f6/releases/boss-sentinel_1.2.12-1_all.deb
+sudo dpkg -i boss-sentinel_1.2.12-1_all.deb
 boss-sentinel
 ```
 
-The installer prints each dependency as **installed / not installed**, installs
-anything missing with apt, then configures the package.
+This `.deb` **bundles** `fonts-hack` and `libnotify-bin`. On install, postinst
+prints each as installed / not installed and installs missing ones from inside
+the package — no separate apt dependency step for those.
 
-### Alternative (apt resolves Depends for you)
-
-```bash
-sudo apt-get install -y ./boss-sentinel_1.2.11-1_all.deb
-```
-
-## ISO seed packages
-
-Include `boss-sentinel_1.2.11-1_all.deb` plus:
-
-- python3-gi python3-gi-cairo python3-cairo
-- gir1.2-gtk-4.0 gir1.2-adw-1
-- pkexec polkitd
-- libnotify-bin
-- fonts-hack (or fonts-firacode / fonts-jetbrains-mono)
+Core desktop stack still required (normally already on Ubuntu Desktop / ISO):
+`python3-gi`, `gir1.2-gtk-4.0`, `gir1.2-adw-1`, `pkexec`/`polkitd`.

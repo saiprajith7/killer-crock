@@ -1,8 +1,64 @@
 #!/bin/sh
+# BOSS-Sentinel postinst — installs bundled dependency .debs when missing,
+# so a single `dpkg -i boss-sentinel_*.deb` is enough (no separate apt step).
 set -e
+
+BUNDLE_DIR="/usr/share/boss-sentinel/bundled-debs"
+
+pkg_installed() {
+    dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q "install ok installed"
+}
+
+install_bundled_deps() {
+    if [ ! -d "$BUNDLE_DIR" ]; then
+        return 0
+    fi
+
+    host_arch="$(dpkg --print-architecture 2>/dev/null || echo unknown)"
+    echo "BOSS-Sentinel: dependency status"
+    echo "--------------------------------"
+
+    # shellcheck disable=SC2012
+    for deb in "$BUNDLE_DIR"/*.deb; do
+        [ -f "$deb" ] || continue
+        name="$(dpkg-deb -f "$deb" Package 2>/dev/null || true)"
+        arch="$(dpkg-deb -f "$deb" Architecture 2>/dev/null || true)"
+        ver="$(dpkg-deb -f "$deb" Version 2>/dev/null || true)"
+        [ -n "$name" ] || continue
+
+        if [ "$arch" != "all" ] && [ "$arch" != "$host_arch" ]; then
+            echo "  $name ($arch)  →  skipped (this system is $host_arch)"
+            continue
+        fi
+
+        if pkg_installed "$name"; then
+            echo "  $name  →  installed"
+            continue
+        fi
+
+        echo "  $name  →  not installed — installing from bundled package ($ver)..."
+        if dpkg -i "$deb" >/tmp/boss-sentinel-bundle-dpkg.log 2>&1; then
+            echo "  $name  →  installed"
+        else
+            # Try to finish any transitive deps from the system archive if available.
+            if command -v apt-get >/dev/null 2>&1; then
+                apt-get install -f -y >/tmp/boss-sentinel-bundle-apt.log 2>&1 || true
+            fi
+            if pkg_installed "$name"; then
+                echo "  $name  →  installed"
+            else
+                echo "  $name  →  FAILED (see /tmp/boss-sentinel-bundle-dpkg.log)"
+                echo "            App will still run; notifications/fonts may be limited."
+            fi
+        fi
+    done
+    echo "--------------------------------"
+}
 
 case "$1" in
     configure)
+        install_bundled_deps
+
         if command -v gtk-update-icon-cache >/dev/null 2>&1; then
             gtk-update-icon-cache -f /usr/share/icons/hicolor >/dev/null 2>&1 || true
         fi

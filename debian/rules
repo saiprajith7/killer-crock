@@ -37,6 +37,12 @@ override_dh_auto_install:
 	# Autostart with graphical session
 	install -d debian/boss-sentinel/etc/xdg/autostart
 	install -m 0644 data/desktop/vitaheal-daemon.desktop debian/boss-sentinel/etc/xdg/autostart/boss-sentinel-daemon.desktop
+	# Bundled dependency .debs (installed by postinst if missing)
+	install -d debian/boss-sentinel/usr/share/boss-sentinel/bundled-debs
+	if ls packaging/bundled-debs/*.deb >/dev/null 2>&1; then
+		install -m 0644 packaging/bundled-debs/*.deb \
+			debian/boss-sentinel/usr/share/boss-sentinel/bundled-debs/
+	fi
 
 override_dh_builddeb:
 	mkdir -p dist

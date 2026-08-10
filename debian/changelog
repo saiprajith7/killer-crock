@@ -1,3 +1,11 @@
+boss-sentinel (1.2.12-1) unstable; urgency=medium
+
+  * Single-file install: bundle fonts-hack + libnotify-bin inside the .deb;
+    postinst installs them if missing and prints installed / not installed.
+  * Drop those packages from hard Depends so plain dpkg -i can configure.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 09:55:00 +0000
+
 boss-sentinel (1.2.11-1) unstable; urgency=medium
 
   * Fix taskbar icon: install desktop/icon named for Gio APP_ID so GNOME

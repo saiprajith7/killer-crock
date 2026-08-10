@@ -1,6 +1,6 @@
 """BOSS-Sentinel — native Debian PC health monitor with interactive autohealing."""
 
-__version__ = "1.2.11"
+__version__ = "1.2.12"
 APP_ID = "org.bosssentinel.BossSentinel"
 APP_NAME = "BOSS-Sentinel"
 BRAND = "BOSS-SENTINEL"
