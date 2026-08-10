@@ -11,9 +11,11 @@ install:
 	install -d $(DESTDIR)$(PREFIX)/libexec/boss-sentinel
 	install -m 0755 scripts/vitaheal-helper $(DESTDIR)$(PREFIX)/libexec/boss-sentinel/boss-sentinel-helper
 	install -d $(DESTDIR)$(PREFIX)/share/applications
-	install -m 0644 data/desktop/vitaheal.desktop $(DESTDIR)$(PREFIX)/share/applications/boss-sentinel.desktop
+	install -m 0644 data/desktop/vitaheal.desktop $(DESTDIR)$(PREFIX)/share/applications/org.bosssentinel.BossSentinel.desktop
+	ln -sf org.bosssentinel.BossSentinel.desktop $(DESTDIR)$(PREFIX)/share/applications/boss-sentinel.desktop
 	install -d $(DESTDIR)$(PREFIX)/share/icons/hicolor/scalable/apps
-	install -m 0644 data/icons/vitaheal.svg $(DESTDIR)$(PREFIX)/share/icons/hicolor/scalable/apps/boss-sentinel.svg
+	install -m 0644 data/icons/vitaheal.svg $(DESTDIR)$(PREFIX)/share/icons/hicolor/scalable/apps/org.bosssentinel.BossSentinel.svg
+	ln -sf org.bosssentinel.BossSentinel.svg $(DESTDIR)$(PREFIX)/share/icons/hicolor/scalable/apps/boss-sentinel.svg
 	install -d $(DESTDIR)$(PREFIX)/share/polkit-1/actions
 	install -m 0644 data/polkit/org.vitaheal.policy $(DESTDIR)$(PREFIX)/share/polkit-1/actions/org.bosssentinel.policy
 	install -d $(DESTDIR)$(PREFIX)/lib/systemd/user

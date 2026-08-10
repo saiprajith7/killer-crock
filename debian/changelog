@@ -1,3 +1,10 @@
+boss-sentinel (1.2.11-1) unstable; urgency=medium
+
+  * Fix taskbar icon: install desktop/icon named for Gio APP_ID so GNOME
+    shows the BOSS-Sentinel logo instead of a generic settings gear.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 09:50:00 +0000
+
 boss-sentinel (1.2.10-1) unstable; urgency=medium
 
   * Installer prints each dependency as installed / not installed, installs

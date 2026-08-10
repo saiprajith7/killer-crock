@@ -29,7 +29,7 @@ def _notify(title: str, body: str) -> None:
                 "notify-send",
                 "--app-name=BOSS-Sentinel",
                 "--urgency=critical",
-                "--icon=boss-sentinel",
+                "--icon=org.bosssentinel.BossSentinel",
                 title,
                 body + "\nOpen BOSS-Sentinel and choose Yes/No to heal.",
             ],

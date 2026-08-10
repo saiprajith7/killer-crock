@@ -15,11 +15,19 @@ override_dh_auto_install:
 	install -d debian/boss-sentinel/usr/bin
 	install -m 0755 scripts/boss-sentinel debian/boss-sentinel/usr/bin/boss-sentinel
 	ln -sf boss-sentinel debian/boss-sentinel/usr/bin/vitaheal
-	# Desktop + icon
+	# Desktop + icon — desktop file name MUST match Gio application_id so
+	# GNOME/shell taskbar shows our logo instead of a generic gear icon.
 	install -d debian/boss-sentinel/usr/share/applications
-	install -m 0644 data/desktop/vitaheal.desktop debian/boss-sentinel/usr/share/applications/boss-sentinel.desktop
+	install -m 0644 data/desktop/vitaheal.desktop \
+		debian/boss-sentinel/usr/share/applications/org.bosssentinel.BossSentinel.desktop
+	ln -sf org.bosssentinel.BossSentinel.desktop \
+		debian/boss-sentinel/usr/share/applications/boss-sentinel.desktop
 	install -d debian/boss-sentinel/usr/share/icons/hicolor/scalable/apps
-	install -m 0644 data/icons/vitaheal.svg debian/boss-sentinel/usr/share/icons/hicolor/scalable/apps/boss-sentinel.svg
+	install -m 0644 data/icons/vitaheal.svg \
+		debian/boss-sentinel/usr/share/icons/hicolor/scalable/apps/org.bosssentinel.BossSentinel.svg
+	ln -sf org.bosssentinel.BossSentinel.svg \
+		debian/boss-sentinel/usr/share/icons/hicolor/scalable/apps/boss-sentinel.svg
+
 	# Polkit
 	install -d debian/boss-sentinel/usr/share/polkit-1/actions
 	install -m 0644 data/polkit/org.vitaheal.policy debian/boss-sentinel/usr/share/polkit-1/actions/org.bosssentinel.policy
