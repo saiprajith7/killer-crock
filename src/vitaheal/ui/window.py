@@ -207,6 +207,8 @@ class VitaHealWindow(Adw.ApplicationWindow):
 
         self._paint_logs()
         self._sync_autoheal_ui()
+
+    def _build_topbar(self) -> Gtk.Widget:
         top = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         top.add_css_class("topbar")
         brand_col = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)

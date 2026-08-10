@@ -1,3 +1,9 @@
+boss-sentinel (1.2.8-1) unstable; urgency=medium
+
+  * Fix AttributeError on launch: restore missing _build_topbar method.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 05:15:00 +0000
+
 boss-sentinel (1.2.7-1) unstable; urgency=medium
 
   * Clear Autoheal ON/OFF switch (top bar + Overview), persisted in
