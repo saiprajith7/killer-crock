@@ -17,6 +17,7 @@ from vitaheal.monitor.hardware import REPLACE_THRESHOLD, HardwareCollector
 from vitaheal.monitor.engine import HealthEngine
 from vitaheal.monitor.models import HealthSnapshot, Issue, MetricKind, Severity
 from vitaheal.monitor.updates import UpdateStatus, list_upgradable, read_sources, summarize_packages
+from vitaheal.settings import get_autoheal_enabled, set_autoheal_enabled
 from vitaheal.ui.eventlog import EventLog
 from vitaheal.ui.gauges import BreathWave, DeviceGraph, HeroVitality, MultiCpuGraph, PerCpuMonitor
 from vitaheal.ui.heal_dialog import HealResultToast, ask_confirm, ask_heal
@@ -107,7 +108,8 @@ class VitaHealWindow(Adw.ApplicationWindow):
         self.hardware = HardwareCollector()
         self.events = EventLog()
         self._pending_issue_ids: set[str] = set()
-        self._autoheal_enabled = True
+        self._autoheal_enabled = get_autoheal_enabled()
+        self._autoheal_syncing = False
         self._last_snap: Optional[HealthSnapshot] = None
         self._update_status = UpdateStatus(sources=read_sources())
         self._update_busy = False
@@ -204,8 +206,7 @@ class VitaHealWindow(Adw.ApplicationWindow):
         root.append(self.footer)
 
         self._paint_logs()
-
-    def _build_topbar(self) -> Gtk.Widget:
+        self._sync_autoheal_ui()
         top = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         top.add_css_class("topbar")
         brand_col = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
@@ -220,11 +221,27 @@ class VitaHealWindow(Adw.ApplicationWindow):
         brand_col.append(sub)
         top.append(brand_col)
 
-        self.auto_btn = Gtk.ToggleButton(label="AUTOHEAL ON")
-        self.auto_btn.add_css_class("cta-ghost")
-        self.auto_btn.set_active(True)
-        self.auto_btn.connect("toggled", self._on_auto_toggled)
-        top.append(self.auto_btn)
+        # Explicit Autoheal ON/OFF — persisted; user chooses.
+        auto_wrap = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        auto_wrap.add_css_class("autoheal-wrap")
+        auto_wrap.set_valign(Gtk.Align.CENTER)
+        auto_lab = Gtk.Label(label="AUTOHEAL")
+        auto_lab.add_css_class("autoheal-label")
+        self.auto_state = Gtk.Label(label="")
+        self.auto_state.add_css_class("autoheal-state")
+        self.auto_switch = Gtk.Switch()
+        self.auto_switch.set_valign(Gtk.Align.CENTER)
+        self.auto_switch.set_tooltip_text(
+            "ON: ask Yes/No before healing critical issues.\n"
+            "OFF: monitor only — no automatic heal prompts."
+        )
+        self.auto_switch.set_active(self._autoheal_enabled)
+        self.auto_switch.connect("notify::active", self._on_auto_switch)
+        auto_wrap.append(auto_lab)
+        auto_wrap.append(self.auto_switch)
+        auto_wrap.append(self.auto_state)
+        top.append(auto_wrap)
+        self._sync_autoheal_ui()
 
         close_btn = Gtk.Button(label="×")
         close_btn.add_css_class("close-x")
@@ -270,6 +287,30 @@ class VitaHealWindow(Adw.ApplicationWindow):
 
         self.ov_per_cpu = PerCpuMonitor("INDIVIDUAL CPUS")
         page.append(self.ov_per_cpu)
+
+        # Autoheal preference also visible on Overview
+        page.append(_section("AUTOHEAL"))
+        pref = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        pref.add_css_class("autoheal-card")
+        pref_col = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        pref_col.set_hexpand(True)
+        pref_title = Gtk.Label(label="Interactive autoheal")
+        pref_title.add_css_class("hw-name")
+        pref_title.set_halign(Gtk.Align.START)
+        self.ov_auto_hint = Gtk.Label(label="")
+        self.ov_auto_hint.add_css_class("hw-detail")
+        self.ov_auto_hint.set_halign(Gtk.Align.START)
+        self.ov_auto_hint.set_wrap(True)
+        self.ov_auto_hint.set_xalign(0)
+        pref_col.append(pref_title)
+        pref_col.append(self.ov_auto_hint)
+        pref.append(pref_col)
+        self.ov_auto_switch = Gtk.Switch()
+        self.ov_auto_switch.set_valign(Gtk.Align.CENTER)
+        self.ov_auto_switch.set_active(self._autoheal_enabled)
+        self.ov_auto_switch.connect("notify::active", self._on_auto_switch)
+        pref.append(self.ov_auto_switch)
+        page.append(pref)
 
         page.append(_section("ACTIVE ISSUES"))
         self.overview_issues = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
@@ -535,9 +576,59 @@ class VitaHealWindow(Adw.ApplicationWindow):
         outer.append(log_stack)
         return outer
 
-    def _on_auto_toggled(self, btn: Gtk.ToggleButton) -> None:
-        self._autoheal_enabled = btn.get_active()
-        btn.set_label("AUTOHEAL ON" if self._autoheal_enabled else "AUTOHEAL OFF")
+    def _sync_autoheal_ui(self) -> None:
+        on = self._autoheal_enabled
+        self._autoheal_syncing = True
+        try:
+            if hasattr(self, "auto_state"):
+                self.auto_state.set_text("ON" if on else "OFF")
+                self.auto_state.remove_css_class("autoheal-on")
+                self.auto_state.remove_css_class("autoheal-off")
+                self.auto_state.add_css_class("autoheal-on" if on else "autoheal-off")
+            if hasattr(self, "auto_switch") and self.auto_switch.get_active() != on:
+                self.auto_switch.set_active(on)
+            if hasattr(self, "ov_auto_switch") and self.ov_auto_switch.get_active() != on:
+                self.ov_auto_switch.set_active(on)
+            if hasattr(self, "ov_auto_hint"):
+                if on:
+                    self.ov_auto_hint.set_text(
+                        "ON — critical issues will pop up Yes/No before any heal action."
+                    )
+                else:
+                    self.ov_auto_hint.set_text(
+                        "OFF — monitoring only. Turn ON if you want heal prompts. "
+                        "You can still press HEAL on an issue manually."
+                    )
+            if hasattr(self, "blurb"):
+                if on:
+                    self.blurb.set_text(
+                        "Autoheal is ON. Critical faults will ask Yes/No before repair."
+                    )
+                else:
+                    self.blurb.set_text(
+                        "Autoheal is OFF. Enable it anytime from the top switch or Overview."
+                    )
+        finally:
+            self._autoheal_syncing = False
+
+    def _on_auto_switch(self, switch: Gtk.Switch, *_args) -> None:
+        if self._autoheal_syncing:
+            return
+        enabled = bool(switch.get_active())
+        if enabled == self._autoheal_enabled:
+            self._sync_autoheal_ui()
+            return
+        self._autoheal_enabled = enabled
+        set_autoheal_enabled(enabled)
+        self._sync_autoheal_ui()
+        if not enabled:
+            self._pending_issue_ids.clear()
+            self.toasts.show("Autoheal OFF — no automatic heal prompts", ok=True)
+            self.events.note_heal("Autoheal disabled", "User turned autoheal OFF", ok=True)
+        else:
+            self.toasts.show("Autoheal ON — Yes/No prompts enabled", ok=True)
+            self.events.note_heal("Autoheal enabled", "User turned autoheal ON", ok=True)
+        self._paint_logs()
 
     def _clear_box(self, box: Gtk.Box) -> None:
         child = box.get_first_child()

@@ -48,7 +48,7 @@ boss-sentinel
 sudo apt install -y debhelper dh-python pybuild-plugin-pyproject \
   python3-all python3-setuptools dpkg-dev fakeroot
 make deb
-# output: dist/boss-sentinel_1.2.6-1_all.deb
+# output: dist/boss-sentinel_1.2.7-1_all.deb
 ```
 
 ## Tests
@@ -82,7 +82,8 @@ make test              # unittest only
 | Updates | apt sources.list check + Yes/No upgrade |
 | Logs | Trouble · Heal · Update Log |
 
-Heal and upgrade actions always ask **Yes / No** first.
+Heal and upgrade actions always ask **Yes / No** first. Autoheal is an **ON/OFF**
+switch (default OFF); turn it ON only if you want automatic heal prompts.
 
 ## License
 

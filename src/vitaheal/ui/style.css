@@ -41,15 +41,33 @@ window.boss-sentinel-window {
   color: @mute;
 }
 
-button.close-x {
+.autoheal-wrap {
   background: @surface;
-  color: @mist;
   border: 1px solid alpha(@ink, 0.12);
   border-radius: 4px;
-  min-width: 36px;
-  min-height: 36px;
-  font-size: 18px;
-  padding: 0;
+  padding: 6px 10px;
+}
+.autoheal-label {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: @mute;
+  font-weight: 700;
+}
+.autoheal-state {
+  font-size: 12px;
+  font-weight: 800;
+  min-width: 28px;
+}
+.autoheal-on { color: @ok; }
+.autoheal-off { color: @mute; }
+.autoheal-card {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.08);
+  border-radius: 4px;
+  padding: 12px 14px;
+}
+switch {
+  margin-left: 4px;
 }
 
 button.close-x:hover {
