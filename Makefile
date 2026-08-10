@@ -28,7 +28,7 @@ run-sim:
 	PYTHONPATH=src python3 -m vitaheal --simulate-issue memory
 
 test:
-	PYTHONPATH=src python3 -m unittest discover -s tests -v
+	BOSS_SENTINEL_CPU_SAMPLE=0.05 PYTHONPATH=src python3 -m unittest discover -s tests -v
 
 deb:
 	bash packaging/build-deb.sh

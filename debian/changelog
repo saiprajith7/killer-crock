@@ -1,3 +1,11 @@
+boss-sentinel (1.2.3-1) unstable; urgency=medium
+
+  * Fix inflated CPU readings vs System Monitor: correct /proc/stat
+    accounting (exclude guest double-count), 1s sample window, EMA
+    smoothing; slow graph redraw timers that were burning CPU.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 04:30:00 +0000
+
 boss-sentinel (1.2.2-1) unstable; urgency=medium
 
   * Quiet install/launch: install script avoids apt home-dir `_apt` notice;

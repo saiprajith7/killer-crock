@@ -60,6 +60,19 @@ class EngineTests(unittest.TestCase):
         self.assertGreaterEqual(topo.logical_threads, topo.physical_cores)
         self.assertTrue(topo.model)
 
+    def test_cpu_stat_accounting_excludes_guest(self) -> None:
+        """guest/guest_nice are already inside user/nice — must not inflate total."""
+        from vitaheal.monitor.cpu import _idle_total
+
+        # user nice system idle iowait irq softirq steal guest guest_nice
+        vals = [100, 10, 50, 800, 40, 5, 5, 0, 20, 2]
+        idle_all, total = _idle_total(vals)
+        self.assertEqual(idle_all, 840)  # idle + iowait
+        # busy = 100+10+50+5+5+0 = 170; total = 840+170 = 1010 (no guest)
+        self.assertEqual(total, 1010)
+        busy_pct = (1.0 - idle_all / total) * 100.0
+        self.assertAlmostEqual(busy_pct, 170 / 1010 * 100.0, places=4)
+
     def test_snapshot_json_serializable(self) -> None:
         raw = HealthEngine().snapshot().as_dict()
         json.dumps(raw)

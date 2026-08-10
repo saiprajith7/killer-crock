@@ -50,7 +50,8 @@ class DeviceGraph(Gtk.DrawingArea):
         self._history: Deque[float] = deque([0.0] * 60, maxlen=60)
         self._phase = 0.0
         self.set_draw_func(self._draw)
-        GLib.timeout_add(100, self._tick)
+        # Slow animation tick — 100ms redraws across many graphs inflated CPU.
+        GLib.timeout_add(500, self._tick)
 
     def update(
         self,
