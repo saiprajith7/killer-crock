@@ -48,7 +48,7 @@ boss-sentinel
 sudo apt install -y debhelper dh-python pybuild-plugin-pyproject \
   python3-all python3-setuptools dpkg-dev fakeroot
 make deb
-# output: dist/boss-sentinel_1.2.9-1_all.deb
+# output: dist/boss-sentinel_1.2.10-1_all.deb
 ```
 
 ## Tests

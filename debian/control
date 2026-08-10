@@ -23,10 +23,10 @@ Depends: ${python3:Depends},
          gir1.2-gtk-4.0,
          gir1.2-adw-1,
          pkexec | policykit-1,
-         polkitd | policykit-1
-Recommends: libnotify-bin,
-           fonts-jetbrains-mono | fonts-firacode | fonts-hack,
-           lm-sensors,
+         polkitd | policykit-1,
+         libnotify-bin,
+         fonts-hack | fonts-firacode | fonts-jetbrains-mono
+Recommends: lm-sensors,
            systemd,
            apt
 Replaces: vitaheal

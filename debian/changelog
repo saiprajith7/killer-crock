@@ -1,3 +1,11 @@
+boss-sentinel (1.2.10-1) unstable; urgency=medium
+
+  * Installer prints each dependency as installed / not installed, installs
+    missing packages via apt, then configures the .deb and smoke-tests.
+  * Restore libnotify-bin and monospace fonts as Depends for full desktop use.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 09:45:00 +0000
+
 boss-sentinel (1.2.9-1) unstable; urgency=medium
 
   * Soften Depends for ISO installs: modern pkexec/polkitd alternatives;
