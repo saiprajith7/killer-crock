@@ -48,7 +48,7 @@ boss-sentinel
 sudo apt install -y debhelper dh-python pybuild-plugin-pyproject \
   python3-all python3-setuptools dpkg-dev fakeroot
 make deb
-# output: dist/boss-sentinel_1.2.5-1_all.deb
+# output: dist/boss-sentinel_1.2.6-1_all.deb
 ```
 
 ## Tests
@@ -68,14 +68,17 @@ make test-script
 make test              # unittest only
 ```
 
+## Tabs
+
 | Tab | Contents |
 |-----|----------|
 | Overview | Device graphs + active issues |
-| CPU | Cores, threads, model, per-core bars |
+| CPU | Cores, threads, per-CPU history + bars |
 | Memory | RAM + Swap |
 | Disk | Volumes + graph |
 | GPU | Util / VRAM / temp / power |
 | Thermal | All sensors |
+| Hardware | All components + USB health; replace if &lt; 45% |
 | Updates | apt sources.list check + Yes/No upgrade |
 | Logs | Trouble · Heal · Update Log |
 

@@ -1,3 +1,10 @@
+boss-sentinel (1.2.6-1) unstable; urgency=medium
+
+  * Add Hardware tab: component health inventory including USB devices;
+    advise replacement when health is below 45%. Smoother kinetic scrolling.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 04:55:00 +0000
+
 boss-sentinel (1.2.5-1) unstable; urgency=medium
 
   * Match GNOME System Monitor CPU math (iowait as busy) and show

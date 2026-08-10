@@ -13,6 +13,7 @@ from gi.repository import Adw, GLib, Gtk, Pango  # noqa: E402
 
 from vitaheal import APP_NAME, BRAND
 from vitaheal.heal.actions import perform_heal
+from vitaheal.monitor.hardware import REPLACE_THRESHOLD, HardwareCollector
 from vitaheal.monitor.engine import HealthEngine
 from vitaheal.monitor.models import HealthSnapshot, Issue, MetricKind, Severity
 from vitaheal.monitor.updates import UpdateStatus, list_upgradable, read_sources, summarize_packages
@@ -58,10 +59,32 @@ def _stat_tile(title: str) -> tuple[Gtk.Box, Gtk.Label, Gtk.Label]:
 
 
 def _scrollable(child: Gtk.Widget) -> Gtk.ScrolledWindow:
+    """Smooth, kinetic vertical scrolling for every tab page."""
     scroll = Gtk.ScrolledWindow()
     scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
     scroll.set_vexpand(True)
     scroll.set_hexpand(True)
+    try:
+        scroll.set_kinetic_scrolling(True)
+    except AttributeError:
+        pass
+    try:
+        scroll.set_overlay_scrolling(True)
+    except AttributeError:
+        pass
+    try:
+        scroll.set_propagate_natural_width(True)
+    except AttributeError:
+        pass
+    # Comfortable wheel / trackpad step sizes
+    try:
+        vadj = scroll.get_vadjustment()
+        if vadj is not None:
+            vadj.set_step_increment(48)
+            vadj.set_page_increment(240)
+    except Exception:  # noqa: BLE001
+        pass
+    scroll.add_css_class("smooth-scroll")
     scroll.set_child(child)
     return scroll
 
@@ -81,6 +104,7 @@ class VitaHealWindow(Adw.ApplicationWindow):
         self.add_css_class("vitaheal-window")
 
         self.engine = HealthEngine(simulate=simulate)
+        self.hardware = HardwareCollector()
         self.events = EventLog()
         self._pending_issue_ids: set[str] = set()
         self._autoheal_enabled = True
@@ -169,6 +193,7 @@ class VitaHealWindow(Adw.ApplicationWindow):
         self.stack.add_titled(self._build_disk_tab(), "disk", "Disk")
         self.stack.add_titled(self._build_gpu_tab(), "gpu", "GPU")
         self.stack.add_titled(self._build_thermal_tab(), "thermal", "Thermal")
+        self.stack.add_titled(self._build_hardware_tab(), "hardware", "Hardware")
         self.stack.add_titled(self._build_updates_tab(), "updates", "Updates")
         self.stack.add_titled(self._build_logs_tab(), "logs", "Logs")
         root.append(self.stack)
@@ -379,6 +404,48 @@ class VitaHealWindow(Adw.ApplicationWindow):
         page.append(_section("ALL SENSORS"))
         self.therm_list = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
         page.append(self.therm_list)
+        return _scrollable(page)
+
+    def _build_hardware_tab(self) -> Gtk.Widget:
+        page = self._page()
+        page.append(_section("HARDWARE HEALTH"))
+
+        tiles = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        tiles.set_homogeneous(True)
+        self.hw_avg_tile, self.hw_avg_v, self.hw_avg_d = _stat_tile("AVG HEALTH")
+        self.hw_count_tile, self.hw_count_v, self.hw_count_d = _stat_tile("COMPONENTS")
+        self.hw_replace_tile, self.hw_replace_v, self.hw_replace_d = _stat_tile("REPLACE NOW")
+        tiles.append(self.hw_avg_tile)
+        tiles.append(self.hw_count_tile)
+        tiles.append(self.hw_replace_tile)
+        page.append(tiles)
+
+        self.hw_banner = Gtk.Label(label="")
+        self.hw_banner.add_css_class("hw-banner")
+        self.hw_banner.set_halign(Gtk.Align.START)
+        self.hw_banner.set_wrap(True)
+        self.hw_banner.set_xalign(0)
+        page.append(self.hw_banner)
+
+        hint = Gtk.Label(
+            label=(
+                f"Each component is scored 0–100%. Below {REPLACE_THRESHOLD:.0f}% "
+                "means replace that hardware."
+            )
+        )
+        hint.add_css_class("model-line")
+        hint.set_halign(Gtk.Align.START)
+        hint.set_wrap(True)
+        hint.set_xalign(0)
+        page.append(hint)
+
+        page.append(_section("ALL COMPONENTS"))
+        self.hw_list = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        page.append(self.hw_list)
+
+        page.append(_section("USB DEVICES"))
+        self.hw_usb_list = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        page.append(self.hw_usb_list)
         return _scrollable(page)
 
     def _build_updates_tab(self) -> Gtk.Widget:
@@ -747,6 +814,121 @@ class VitaHealWindow(Adw.ApplicationWindow):
         row.append(btn)
         return row
 
+    def _hw_row(self, name: str, health: float, detail: str, advice: str, replace: bool) -> Gtk.Widget:
+        row = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        row.add_css_class("hw-row")
+        if replace:
+            row.add_css_class("hw-replace")
+        elif health < 65:
+            row.add_css_class("hw-warn")
+        else:
+            row.add_css_class("hw-ok")
+
+        head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        title = Gtk.Label(label=name)
+        title.add_css_class("hw-name")
+        title.set_halign(Gtk.Align.START)
+        title.set_hexpand(True)
+        title.set_wrap(True)
+        title.set_xalign(0)
+        pct = Gtk.Label(label=f"{health:.0f}%")
+        pct.add_css_class("hw-pct")
+        pct.set_halign(Gtk.Align.END)
+        head.append(title)
+        head.append(pct)
+
+        bar = Gtk.LevelBar()
+        bar.set_min_value(0.0)
+        bar.set_max_value(100.0)
+        bar.set_value(max(0.0, min(100.0, health)))
+        bar.add_css_class("hw-bar")
+        if replace:
+            bar.add_css_class("core-crit")
+        elif health < 65:
+            bar.add_css_class("core-warn")
+        else:
+            bar.add_css_class("core-ok")
+
+        det = Gtk.Label(label=detail)
+        det.add_css_class("hw-detail")
+        det.set_halign(Gtk.Align.START)
+        det.set_wrap(True)
+        det.set_xalign(0)
+
+        adv = Gtk.Label(label=advice)
+        adv.add_css_class("hw-advice")
+        if replace:
+            adv.add_css_class("hw-advice-replace")
+        adv.set_halign(Gtk.Align.START)
+        adv.set_wrap(True)
+        adv.set_xalign(0)
+
+        row.append(head)
+        row.append(bar)
+        row.append(det)
+        row.append(adv)
+        return row
+
+    def _paint_hardware(self, snap: HealthSnapshot) -> None:
+        topo = self.engine.cpu.topology
+        gpu_name = "GPU"
+        if getattr(self.engine.gpu, "gpus", None):
+            try:
+                gpu_name = self.engine.gpu.gpus[0].name or "GPU"
+            except Exception:  # noqa: BLE001
+                pass
+        comps = self.hardware.inventory(
+            snap,
+            cpu_model=topo.model,
+            cpu_cores=topo.physical_cores,
+            cpu_threads=topo.logical_threads,
+            gpu_name=gpu_name,
+        )
+        summary = self.hardware.summary(comps)
+        self.hw_avg_v.set_text(f"{summary['avg_health']:.0f}%")
+        self.hw_avg_d.set_text("across all components")
+        self.hw_count_v.set_text(str(summary["count"]))
+        usb_n = sum(1 for c in comps if c.category == "usb")
+        self.hw_count_d.set_text(f"incl. {usb_n} USB" if usb_n else "detected devices")
+        self.hw_replace_v.set_text(str(summary["replace_count"]))
+        self.hw_replace_d.set_text(f"health < {REPLACE_THRESHOLD:.0f}%")
+
+        if summary["replace_count"]:
+            self.hw_banner.set_text(
+                f"Replace recommended: {summary['replace_count']} component(s) "
+                f"below {REPLACE_THRESHOLD:.0f}% health"
+                + (f" — worst: {summary['worst']}" if summary.get("worst") else "")
+                + "."
+            )
+            self.hw_banner.add_css_class("hw-banner-alert")
+        else:
+            self.hw_banner.set_text(
+                f"No component is below {REPLACE_THRESHOLD:.0f}% — no hardware replacement needed."
+            )
+            self.hw_banner.remove_css_class("hw-banner-alert")
+
+        self._clear_box(self.hw_list)
+        self._clear_box(self.hw_usb_list)
+        others = [c for c in comps if c.category != "usb"]
+        usbs = [c for c in comps if c.category == "usb"]
+        if not others:
+            self.hw_list.append(Gtk.Label(label="No hardware components detected.", xalign=0))
+        else:
+            for c in others:
+                self.hw_list.append(
+                    self._hw_row(c.name, c.health, c.detail, c.advice, c.replace)
+                )
+        if not usbs:
+            empty = Gtk.Label(label="No USB devices currently attached / enumerated.")
+            empty.add_css_class("log-empty")
+            empty.set_halign(Gtk.Align.START)
+            self.hw_usb_list.append(empty)
+        else:
+            for c in usbs:
+                self.hw_usb_list.append(
+                    self._hw_row(c.name, c.health, c.detail, c.advice, c.replace)
+                )
+
     def _refresh(self) -> bool:
         snap = self.engine.snapshot()
         self._last_snap = snap
@@ -919,6 +1101,7 @@ class VitaHealWindow(Adw.ApplicationWindow):
                 severity=issue.severity.value,
             )
         self.events.sync_active_troubles(active_keys)
+        self._paint_hardware(snap)
         self._paint_logs()
 
         self.footer.set_text(

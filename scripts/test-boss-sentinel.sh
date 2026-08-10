@@ -160,6 +160,21 @@ assert mem.threshold_crit == 95
 print(f"    RAM={mem.value}% {mem.detail}")
 PY
 
+python3 - <<'PY' && ok "hardware inventory + replace threshold" || bad "hardware inventory + replace threshold"
+from vitaheal.monitor.engine import HealthEngine
+from vitaheal.monitor.hardware import REPLACE_THRESHOLD, HardwareCollector
+assert REPLACE_THRESHOLD == 45.0
+snap = HealthEngine().snapshot()
+comps = HardwareCollector().inventory(snap)
+assert any(c.category == "cpu" for c in comps)
+assert any(c.category == "memory" for c in comps)
+for c in comps:
+    if c.health < REPLACE_THRESHOLD:
+        assert c.replace and "Replace" in c.advice
+summary = HardwareCollector.summary(comps)
+print(f"    components={summary['count']} avg={summary['avg_health']}% replace={summary['replace_count']}")
+PY
+
 python3 - <<'PY' && ok "local heal simulate_ok" || bad "local heal simulate_ok"
 from vitaheal.heal.actions import perform_heal
 r = perform_heal("simulate_ok")
