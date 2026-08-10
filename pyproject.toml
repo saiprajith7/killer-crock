@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "boss-sentinel"
+version = "1.2.12"
+description = "BOSS-Sentinel — native Debian PC health monitor with interactive autohealing"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "GPL-3.0-or-later" }
+authors = [{ name = "BOSS-Sentinel" }]
+dependencies = []
+
+[project.scripts]
+boss-sentinel = "vitaheal.__main__:main"
+boss-sentinel-daemon = "vitaheal.daemon.watcher:main"
+vitaheal = "vitaheal.__main__:main"
+vitaheal-daemon = "vitaheal.daemon.watcher:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+vitaheal = ["ui/*.css", "ui/*.ui"]

@@ -1,0 +1,43 @@
+Source: boss-sentinel
+Section: utils
+Priority: optional
+Maintainer: BOSS-Sentinel Packagers <packagers@boss-sentinel.local>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               pybuild-plugin-pyproject,
+               python3-all,
+               python3-setuptools,
+               python3-gi,
+               python3-cairo
+Standards-Version: 4.6.2
+Homepage: https://localhost/boss-sentinel
+Rules-Requires-Root: no
+
+Package: boss-sentinel
+Architecture: all
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         python3-gi,
+         python3-gi-cairo,
+         python3-cairo,
+         gir1.2-gtk-4.0,
+         gir1.2-adw-1,
+         pkexec | policykit-1,
+         polkitd | policykit-1
+# libnotify-bin + fonts are shipped inside this .deb under
+# /usr/share/boss-sentinel/bundled-debs/ and installed by postinst,
+# so a single `dpkg -i` works without a prior apt dependency fetch.
+Recommends: libnotify-bin,
+           fonts-hack | fonts-firacode | fonts-jetbrains-mono,
+           lm-sensors,
+           systemd,
+           apt
+Replaces: vitaheal
+Conflicts: vitaheal
+Provides: vitaheal
+Description: BOSS-Sentinel — PC health monitor with interactive autohealing
+ BOSS-Sentinel is a Debian-native GTK4 desktop application that monitors
+ CPU, memory, disk, temperature, GPU, network and process health in a
+ minimal blue UI. Critical faults ask Yes/No before autoheal. Ships with
+ a systemd user daemon, polkit helper and desktop launcher. Bundles
+ libnotify-bin and fonts-hack for one-file dpkg installs / ISO seeding.

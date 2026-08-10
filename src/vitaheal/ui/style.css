@@ -1,0 +1,414 @@
+/* BOSS-Sentinel — minimal blue theme
+   Cool slate + trust blue. Light, readable, works for everyone. */
+
+@define-color canvas #f1f5f9;
+@define-color surface #ffffff;
+@define-color ink #0f172a;
+@define-color mist #334155;
+@define-color mute #64748b;
+@define-color blue #2563eb;
+@define-color blue-soft #dbeafe;
+@define-color blue-deep #1e40af;
+@define-color ok #059669;
+@define-color amber #d97706;
+@define-color fault #dc2626;
+
+* {
+  font-family: "JetBrains Mono", "Fira Code", "Hack", "IBM Plex Mono", monospace;
+  color: @mist;
+}
+
+window.vitaheal-window,
+window.boss-sentinel-window {
+  background-color: @canvas;
+}
+
+.topbar {
+  background: transparent;
+  padding: 12px 20px 4px 20px;
+}
+
+.brand {
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: 3px;
+  color: @blue-deep;
+}
+
+.brand-sub {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: @mute;
+}
+
+.autoheal-wrap {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.12);
+  border-radius: 4px;
+  padding: 6px 10px;
+}
+.autoheal-label {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: @mute;
+  font-weight: 700;
+}
+.autoheal-state {
+  font-size: 12px;
+  font-weight: 800;
+  min-width: 28px;
+}
+.autoheal-on { color: @ok; }
+.autoheal-off { color: @mute; }
+.autoheal-card {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.08);
+  border-radius: 4px;
+  padding: 12px 14px;
+}
+switch {
+  margin-left: 4px;
+}
+
+button.close-x:hover {
+  background: @fault;
+  color: white;
+  border-color: @fault;
+}
+
+.status-strip {
+  padding: 4px 20px 0 20px;
+}
+
+.hero-status {
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: @ok;
+}
+
+.hero-status.warn { color: @amber; }
+.hero-status.crit { color: @fault; }
+
+.hero-line {
+  font-size: 12px;
+  color: @mute;
+}
+
+.tab-bar {
+  padding: 10px 16px 4px 16px;
+}
+
+.tab-switcher {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.08);
+  border-radius: 6px;
+  padding: 4px;
+}
+
+.tab-switcher > button {
+  background: transparent;
+  color: @mute;
+  border: none;
+  border-radius: 4px;
+  letter-spacing: 1px;
+  font-size: 11px;
+  padding: 8px 12px;
+  min-height: 28px;
+}
+
+.tab-switcher > button:checked {
+  background: @blue;
+  color: white;
+}
+
+.tab-switcher > button:hover {
+  background: @blue-soft;
+  color: @blue-deep;
+}
+
+.tab-switcher > button:checked:hover {
+  background: @blue-deep;
+  color: white;
+}
+
+.log-tab-bar {
+  padding: 8px 16px 0 16px;
+}
+
+.log-switcher > button {
+  background: @surface;
+  color: @mute;
+  border: 1px solid alpha(@ink, 0.1);
+  border-radius: 4px;
+  letter-spacing: 1px;
+  font-size: 11px;
+  padding: 8px 16px;
+  margin: 0 4px;
+}
+
+.log-switcher > button:checked {
+  background: @blue;
+  color: white;
+  border-color: @blue;
+}
+
+.tab-page {
+  background: transparent;
+}
+
+.section-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: @mute;
+  padding: 4px 0;
+}
+
+.device-cell {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.08);
+  border-radius: 6px;
+  margin: 4px;
+  padding: 2px;
+}
+
+.stat-tile {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.08);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+
+.stat-title {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: @mute;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: @blue-deep;
+}
+
+.stat-detail {
+  font-size: 11px;
+  color: @mute;
+}
+
+.model-line {
+  font-size: 12px;
+  color: @mist;
+  padding: 4px 2px 8px 2px;
+}
+
+.kv-row {
+  padding: 8px 4px;
+  border-bottom: 1px solid alpha(@ink, 0.06);
+}
+
+.kv-left {
+  font-size: 12px;
+  color: @mist;
+}
+
+.kv-right {
+  font-size: 12px;
+  color: @blue-deep;
+}
+
+.core-row { padding: 4px 0; }
+.core-label { font-size: 11px; color: @mute; letter-spacing: 1px; }
+.core-val { font-size: 12px; font-weight: 700; color: @blue-deep; }
+
+.per-cpu-monitor {
+  padding: 4px 0 8px 0;
+}
+
+.cpu-core-meter {
+  background: @surface;
+  padding: 10px 12px;
+  border: 1px solid alpha(@ink, 0.08);
+  border-radius: 4px;
+  min-width: 140px;
+}
+
+levelbar.core-bar trough {
+  background: @blue-soft;
+  border-radius: 2px;
+  min-height: 10px;
+}
+
+levelbar.core-bar block,
+levelbar.core-bar.core-ok block {
+  background: @blue;
+  border-radius: 2px;
+  min-height: 10px;
+}
+
+levelbar.core-bar.core-warn block {
+  background: @amber;
+}
+
+levelbar.core-bar.core-crit block {
+  background: @fault;
+}
+
+.cpu-core-meter.core-warn .core-val { color: @amber; }
+.cpu-core-meter.core-crit .core-val { color: @fault; }
+
+.log-row {
+  padding: 8px 0;
+  border-bottom: 1px solid alpha(@ink, 0.06);
+}
+
+.log-head { font-size: 12px; color: @ink; }
+.log-detail { font-size: 11px; color: @mute; }
+
+.log-empty {
+  font-size: 12px;
+  color: @mute;
+  font-style: italic;
+  padding: 8px 0;
+}
+
+.issue-inline {
+  padding: 8px 0;
+  border-bottom: 1px solid alpha(@ink, 0.08);
+}
+
+button.cta-ghost {
+  background: @surface;
+  color: @blue-deep;
+  border: 1px solid alpha(@blue, 0.35);
+  border-radius: 4px;
+  letter-spacing: 1px;
+  padding: 8px 14px;
+}
+
+button.cta-ghost:hover {
+  background: @blue-soft;
+}
+
+button.cta-danger {
+  background: @surface;
+  color: @fault;
+  border: 1px solid alpha(@fault, 0.4);
+  border-radius: 4px;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+button.cta-danger:hover {
+  background: @fault;
+  color: white;
+}
+
+button.cta-primary {
+  background: @blue;
+  color: white;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 14px;
+}
+
+button.cta-primary:hover {
+  background: @blue-deep;
+}
+
+.footer-meta {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: @mute;
+  padding: 8px 24px 14px 24px;
+}
+
+scrolledwindow { background: transparent; }
+scrolledwindow.smooth-scroll {
+  background: transparent;
+}
+/* Soft fade edges feel smoother while kinetic scrolling */
+scrolledwindow undershoot.top,
+scrolledwindow undershoot.bottom,
+scrolledwindow overshoot.top,
+scrolledwindow overshoot.bottom {
+  background: none;
+}
+scrollbar {
+  background: transparent;
+  margin: 2px;
+}
+scrollbar.vertical {
+  min-width: 10px;
+}
+scrollbar slider {
+  background: alpha(@blue, 0.28);
+  border-radius: 6px;
+  min-width: 8px;
+  min-height: 48px;
+}
+scrollbar slider:hover {
+  background: alpha(@blue, 0.55);
+}
+scrollbar slider:active {
+  background: @blue;
+}
+
+.hw-banner {
+  font-size: 12px;
+  color: @ok;
+  padding: 8px 0 4px 0;
+}
+.hw-banner-alert {
+  color: @fault;
+  font-weight: 700;
+}
+.hw-row {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.08);
+  border-radius: 4px;
+  padding: 12px 14px;
+}
+.hw-row.hw-replace {
+  border-color: alpha(@fault, 0.45);
+  background: alpha(@fault, 0.06);
+}
+.hw-row.hw-warn {
+  border-color: alpha(@amber, 0.4);
+}
+.hw-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: @ink;
+}
+.hw-pct {
+  font-size: 14px;
+  font-weight: 800;
+  color: @blue-deep;
+}
+.hw-replace .hw-pct { color: @fault; }
+.hw-warn .hw-pct { color: @amber; }
+.hw-detail {
+  font-size: 11px;
+  color: @mute;
+}
+.hw-advice {
+  font-size: 11px;
+  color: @mist;
+  padding-top: 2px;
+}
+.hw-advice-replace {
+  color: @fault;
+  font-weight: 700;
+}
+levelbar.hw-bar trough {
+  background: @blue-soft;
+  border-radius: 2px;
+  min-height: 10px;
+}
+levelbar.hw-bar block {
+  border-radius: 2px;
+  min-height: 10px;
+}

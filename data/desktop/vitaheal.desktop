@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=BOSS-Sentinel
+GenericName=PC Health Monitor
+Comment=Minimal PC health monitoring with interactive autohealing
+Exec=boss-sentinel
+Icon=org.bosssentinel.BossSentinel
+Terminal=false
+Type=Application
+Categories=System;Monitor;Utility;
+Keywords=health;monitor;heal;cpu;memory;disk;boss;sentinel;
+StartupNotify=true
+StartupWMClass=org.bosssentinel.BossSentinel
+X-GNOME-UsesNotifications=true

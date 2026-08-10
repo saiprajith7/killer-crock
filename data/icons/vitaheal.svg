@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="BOSS-Sentinel">
+  <!-- App icon: blue pulse badge (taskbar / launcher) -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+  <circle cx="64" cy="64" r="42" fill="none" stroke="#93c5fd" stroke-width="5" opacity="0.95"/>
+  <circle cx="64" cy="64" r="28" fill="none" stroke="#bfdbfe" stroke-width="2.5" opacity="0.75"/>
+  <path d="M28 64 H46 L54 40 L70 88 L78 64 H100"
+        fill="none" stroke="#ffffff" stroke-width="5.5"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="64" cy="64" r="5" fill="#60a5fa"/>
+</svg>

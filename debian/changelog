@@ -1,0 +1,106 @@
+boss-sentinel (1.2.12-1) unstable; urgency=medium
+
+  * Single-file install: bundle fonts-hack + libnotify-bin inside the .deb;
+    postinst installs them if missing and prints installed / not installed.
+  * Drop those packages from hard Depends so plain dpkg -i can configure.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 09:55:00 +0000
+
+boss-sentinel (1.2.11-1) unstable; urgency=medium
+
+  * Fix taskbar icon: install desktop/icon named for Gio APP_ID so GNOME
+    shows the BOSS-Sentinel logo instead of a generic settings gear.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 09:50:00 +0000
+
+boss-sentinel (1.2.10-1) unstable; urgency=medium
+
+  * Installer prints each dependency as installed / not installed, installs
+    missing packages via apt, then configures the .deb and smoke-tests.
+  * Restore libnotify-bin and monospace fonts as Depends for full desktop use.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 09:45:00 +0000
+
+boss-sentinel (1.2.9-1) unstable; urgency=medium
+
+  * Soften Depends for ISO installs: modern pkexec/polkitd alternatives;
+    move fonts and libnotify-bin to Recommends so dpkg -i can configure.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 09:40:00 +0000
+
+boss-sentinel (1.2.8-1) unstable; urgency=medium
+
+  * Fix AttributeError on launch: restore missing _build_topbar method.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 05:15:00 +0000
+
+boss-sentinel (1.2.7-1) unstable; urgency=medium
+
+  * Clear Autoheal ON/OFF switch (top bar + Overview), persisted in
+    ~/.config/boss-sentinel/settings.json; default OFF so users opt in.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 05:05:00 +0000
+
+boss-sentinel (1.2.6-1) unstable; urgency=medium
+
+  * Add Hardware tab: component health inventory including USB devices;
+    advise replacement when health is below 45%. Smoother kinetic scrolling.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 04:55:00 +0000
+
+boss-sentinel (1.2.5-1) unstable; urgency=medium
+
+  * Match GNOME System Monitor CPU math (iowait as busy) and show
+    multi-line CPU1…CPUn history graph with live legend percentages.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 04:45:00 +0000
+
+boss-sentinel (1.2.4-1) unstable; urgency=medium
+
+  * Show individual logical CPUs (CPU0…CPUn) on Overview and CPU tabs
+    with live per-CPU bars and percent labels.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 04:40:00 +0000
+
+boss-sentinel (1.2.3-1) unstable; urgency=medium
+
+  * Fix inflated CPU readings vs System Monitor: correct /proc/stat
+    accounting (exclude guest double-count), 1s sample window, EMA
+    smoothing; slow graph redraw timers that were burning CPU.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 10 Aug 2026 04:30:00 +0000
+
+boss-sentinel (1.2.2-1) unstable; urgency=medium
+
+  * Quiet install/launch: install script avoids apt home-dir `_apt` notice;
+    GUI launcher filters harmless libEGL DRI authenticate warnings.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Sun, 09 Aug 2026 08:00:00 +0000
+
+boss-sentinel (1.2.1-1) unstable; urgency=medium
+
+  * Fix install failure: restore valid VitaHealWindow class name
+    (rebrand had produced invalid BOSS-SentinelWindow identifier).
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Sun, 09 Aug 2026 07:55:00 +0000
+
+boss-sentinel (1.2.0-1) unstable; urgency=medium
+
+  * Add Updates tab wired to apt sources.list with Yes/No install.
+  * Add Update Log; keep app lightweight (on-demand apt, slower UI ticks).
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Sun, 09 Aug 2026 07:40:00 +0000
+
+boss-sentinel (1.1.0-1) unstable; urgency=medium
+
+  * Rebrand to BOSS-Sentinel with minimal accessible blue theme.
+  * Tabbed scrollable UI: Overview, CPU, Memory, Disk, GPU, Thermal, Logs.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Sun, 09 Aug 2026 07:35:00 +0000
+
+boss-sentinel (1.0.0-1) unstable; urgency=medium
+
+  * Initial release — native PC health monitor with interactive
+    Yes/No autohealing for Debian.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Sun, 09 Aug 2026 06:30:00 +0000

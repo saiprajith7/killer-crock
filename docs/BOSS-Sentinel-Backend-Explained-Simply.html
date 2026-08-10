@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>BOSS-Sentinel — How It Works Behind the Scenes</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">BOSS-Sentinel — How It Works Behind the Scenes</h1>
+</header>
+<h1 id="boss-sentinel-how-it-works-behind-the-scenes">BOSS-Sentinel —
+How It Works Behind the Scenes</h1>
+<p><strong>A simple guide for everyone</strong><br />
+Version covered: <strong>1.2.8</strong><br />
+Audience: Non-technical readers, managers, and new team members</p>
+<hr />
+<h2 id="what-this-document-is-about">What this document is about</h2>
+<p>BOSS-Sentinel is a PC health monitor for Debian/Ubuntu.<br />
+This guide explains <strong>what happens inside the computer</strong>
+when you open the app — in plain language.</p>
+<p>You do <strong>not</strong> need to be a programmer to understand
+this.</p>
+<p>Think of your PC like a <strong>human body</strong>.<br />
+BOSS-Sentinel is like a <strong>nurse with a checklist</strong>: it
+checks pulse, temperature, and energy, then asks before giving
+medicine.</p>
+<hr />
+<h2 id="the-big-picture-one-minute">The big picture (one minute)</h2>
+<p>When you run <code>boss-sentinel</code>, three kinds of work can
+happen:</p>
+<ol type="1">
+<li><strong>Watch</strong> — Read how healthy the PC is (CPU, memory,
+disk, heat, and more).</li>
+<li><strong>Show</strong> — Draw those numbers on the screen every few
+seconds.</li>
+<li><strong>Heal</strong> — Only if you say Yes, try a safe fix
+(sometimes needing your password).</li>
+</ol>
+<p>Most of the time, the app is only <strong>watching and
+showing</strong>.<br />
+It does <strong>not</strong> silently change your system unless you
+approve a heal.</p>
+<hr />
+<h2 id="simple-analogy-hospital-for-your-computer">Simple analogy:
+hospital for your computer</h2>
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 59%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Real life</th>
+<th>BOSS-Sentinel</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Patient</td>
+<td>Your PC</td>
+</tr>
+<tr class="even">
+<td>Nurse with clipboard</td>
+<td>The <strong>monitor</strong> (collects readings)</td>
+</tr>
+<tr class="odd">
+<td>Doctor reviewing charts</td>
+<td>The <strong>health engine</strong> (decides OK / Warning /
+Critical)</td>
+</tr>
+<tr class="even">
+<td>Waiting room screen</td>
+<td>The <strong>window</strong> you see</td>
+</tr>
+<tr class="odd">
+<td>Asking “Should we treat?”</td>
+<td>The <strong>Yes / No</strong> heal dialog</td>
+</tr>
+<tr class="even">
+<td>Pharmacy that needs ID</td>
+<td>The <strong>helper</strong> + password prompt
+(<code>pkexec</code>)</td>
+</tr>
+<tr class="odd">
+<td>Night-shift pager</td>
+<td>The <strong>background daemon</strong> (optional)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="what-runs-on-your-computer-roles">What runs on your computer
+(roles)</h2>
+<h3 id="the-main-app-what-you-usually-open">1) The main app (what you
+usually open)</h3>
+<ul>
+<li>Command: <code>boss-sentinel</code></li>
+<li>What it is: A normal desktop window app (like System Monitor)</li>
+<li>Who it runs as: <strong>You</strong> (your user account), not the
+administrator all the time</li>
+<li>Job: Show health, refresh the screen, ask Yes/No before healing</li>
+</ul>
+<h3 id="the-background-watcher-optional">2) The background watcher
+(optional)</h3>
+<ul>
+<li>Service name: <code>boss-sentinel-daemon</code></li>
+<li>What it is: A small program that can keep checking even when the
+window is closed</li>
+<li>Who it runs as: Still <strong>you</strong> (a “user service,” not a
+full system root service)</li>
+<li>Job: If something looks critical, send a desktop notification and
+open the main app so <strong>you</strong> can decide</li>
+</ul>
+<h3 id="the-privileged-helper-only-when-healing-needs-admin-power">3)
+The privileged helper (only when healing needs admin power)</h3>
+<ul>
+<li>Path:
+<code>/usr/libexec/boss-sentinel/boss-sentinel-helper</code></li>
+<li>What it is: A small tool that can do admin-only cleanup (like
+clearing system caches)</li>
+<li>Who it runs as: <strong>Administrator (root), but only for that one
+action</strong>, after you approve</li>
+<li>Job: Do the requested heal, then exit and report success or
+failure</li>
+</ul>
+<p><strong>Important:</strong> The helper is not always running in the
+background as root.<br />
+It starts only when needed, asks for permission, does one job, and
+finishes.</p>
+<hr />
+<h2 id="how-a-health-check-works-step-by-step">How a health check works
+(step by step)</h2>
+<p>Every few seconds, the main window asks the <strong>Health
+Engine</strong> for a fresh report.</p>
+<h3 id="step-a-collect-readings-take-vitals">Step A — Collect readings
+(“take vitals”)</h3>
+<p>The engine asks several small specialists. Each one looks at a
+specific part of Linux:</p>
+<table>
+<colgroup>
+<col style="width: 19%" />
+<col style="width: 25%" />
+<col style="width: 54%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Specialist</th>
+<th>What it checks</th>
+<th>Where it looks (simple meaning)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CPU</td>
+<td>How busy the processor is</td>
+<td>System “heartbeat” counters</td>
+</tr>
+<tr class="even">
+<td>Memory</td>
+<td>How full RAM is</td>
+<td>Memory status file</td>
+</tr>
+<tr class="odd">
+<td>Swap</td>
+<td>Overflow memory usage</td>
+<td>Same memory status</td>
+</tr>
+<tr class="even">
+<td>Disk</td>
+<td>How full storage is</td>
+<td>Mounted folders like <code>/</code> and <code>/home</code></td>
+</tr>
+<tr class="odd">
+<td>Inodes</td>
+<td>File-slot pressure</td>
+<td>Same disk checks (many tiny files can fill slots)</td>
+</tr>
+<tr class="even">
+<td>Temperature</td>
+<td>Hottest sensor</td>
+<td>Hardware sensor folders</td>
+</tr>
+<tr class="odd">
+<td>GPU</td>
+<td>Graphics load (if present)</td>
+<td>NVIDIA tools or graphics system folders</td>
+</tr>
+<tr class="even">
+<td>Network</td>
+<td>Data speed (info)</td>
+<td>Network traffic counters</td>
+</tr>
+<tr class="odd">
+<td>Processes</td>
+<td>“Zombie” stuck processes</td>
+<td>Process list</td>
+</tr>
+<tr class="even">
+<td>Hardware tab</td>
+<td>Component health including USB</td>
+<td>Device identity + earlier metrics</td>
+</tr>
+<tr class="odd">
+<td>Updates tab</td>
+<td>Available package upgrades</td>
+<td>Apt sources + simulated upgrade list</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Plain English:</strong> Linux already keeps notebooks about
+the machine’s health.<br />
+BOSS-Sentinel reads those notebooks. It does not invent numbers from
+nowhere.</p>
+<h3 id="step-b-grade-each-reading">Step B — Grade each reading</h3>
+<p>Each reading gets a traffic-light style grade:</p>
+<ul>
+<li><strong>OK</strong> — Fine</li>
+<li><strong>Warning</strong> — Getting high; keep an eye on it</li>
+<li><strong>Critical</strong> — Too high; healing may be offered</li>
+</ul>
+<p>Examples of warning / critical levels (percentages unless noted):</p>
+<table>
+<thead>
+<tr class="header">
+<th>Check</th>
+<th>Warning</th>
+<th>Critical</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CPU</td>
+<td>80%</td>
+<td>95%</td>
+</tr>
+<tr class="even">
+<td>Memory (RAM)</td>
+<td>85%</td>
+<td>95%</td>
+</tr>
+<tr class="odd">
+<td>Disk / Inodes</td>
+<td>85%</td>
+<td>95%</td>
+</tr>
+<tr class="even">
+<td>Temperature</td>
+<td>80°C</td>
+<td>95°C</td>
+</tr>
+<tr class="odd">
+<td>GPU</td>
+<td>85%</td>
+<td>95%</td>
+</tr>
+<tr class="even">
+<td>Swap</td>
+<td>50%</td>
+<td>80%</td>
+</tr>
+<tr class="odd">
+<td>Zombie processes</td>
+<td>5</td>
+<td>20</td>
+</tr>
+</tbody>
+</table>
+<h3 id="step-c-build-a-score-0-to-100">Step C — Build a score (0 to
+100)</h3>
+<p>Start at <strong>100</strong>, then subtract:</p>
+<ul>
+<li><strong>−8</strong> for each Warning reading<br />
+</li>
+<li><strong>−20</strong> for each Critical reading</li>
+</ul>
+<p>The score cannot go below 0.</p>
+<p>So: more problems → lower score. Easy.</p>
+<h3 id="step-d-create-issues-with-suggested-fixes">Step D — Create
+“issues” with suggested fixes</h3>
+<p>If a reading is Warning or Critical, the engine may create an
+<strong>Issue</strong>, like:</p>
+<ul>
+<li>“CPU overload” → suggested fix: throttle heavy apps<br />
+</li>
+<li>“Memory high” → suggested fix: drop caches<br />
+</li>
+<li>“Disk full” → suggested fix: purge temp/cache<br />
+</li>
+<li>“Too hot” → suggested fix: powersave cooling</li>
+</ul>
+<p>Network speed is tracked for display, but it does
+<strong>not</strong> create heal issues.</p>
+<hr />
+<h2 id="how-the-screen-stays-up-to-date">How the screen stays up to
+date</h2>
+<ol type="1">
+<li>App opens.</li>
+<li>Immediately takes one health snapshot.</li>
+<li>Then repeats about every <strong>3 seconds</strong>.</li>
+<li>Each snapshot updates the graphs, labels, Hardware tab, and
+Logs.</li>
+</ol>
+<p>That is why numbers move while the window is open.</p>
+<p><strong>CPU note (simple):</strong> Measuring CPU honestly needs two
+samples a short time apart (about 1 second). So each refresh includes
+that short wait — like checking pulse for a full second, not
+guessing.</p>
+<hr />
+<h2 id="autoheal-how-yes-no-really-works">Autoheal: how Yes / No really
+works</h2>
+<h3 id="the-autoheal-switch">The Autoheal switch</h3>
+<ul>
+<li>Location: Top of the window (and Overview)</li>
+<li>Default: <strong>OFF</strong></li>
+<li>Saved in: <code>~/.config/boss-sentinel/settings.json</code></li>
+</ul>
+<p>When Autoheal is <strong>OFF</strong>:</p>
+<ul>
+<li>Monitoring still works.</li>
+<li>The app does <strong>not</strong> pop up heal prompts by
+itself.</li>
+<li>You can still press <strong>HEAL</strong> manually on an issue.</li>
+</ul>
+<p>When Autoheal is <strong>ON</strong>:</p>
+<ul>
+<li>If a <strong>Critical</strong> issue appears, the app asks:
+<strong>Yes — Heal Now</strong> or <strong>No</strong>.</li>
+</ul>
+<h3 id="the-heal-conversation-always-human-approved">The heal
+conversation (always human-approved)</h3>
+<pre><code>Problem detected
+        ↓
+App asks: “Heal this?”
+        ↓
+   You choose
+   /        \
+ NO          YES
+  ↓           ↓
+Do nothing   Ask for admin permission if needed
+             ↓
+           Helper runs one fix
+             ↓
+           Show result (toast + log)</code></pre>
+<p>If you say <strong>No</strong>, the app remembers for about a minute
+so it does not nag you immediately.</p>
+<h3 id="why-a-password-admin-prompt-sometimes-appears">Why a password /
+admin prompt sometimes appears</h3>
+<p>Some fixes need more power than a normal user has (example: clearing
+system page caches).</p>
+<p>Linux has a permission gate called <strong>Polkit</strong>.<br />
+BOSS-Sentinel uses it like this:</p>
+<ol type="1">
+<li>App calls: “Please run the helper to do action X.”</li>
+<li>System asks you to confirm (password / fingerprint, depending on
+your setup).</li>
+<li>Helper runs <strong>as admin for that action only</strong>.</li>
+<li>Helper prints a short success/failure message.</li>
+<li>App shows you the result.</li>
+</ol>
+<p>If you cancel the password prompt, nothing privileged happens.</p>
+<hr />
+<h2 id="what-each-heal-action-means-plain-english">What each heal action
+means (plain English)</h2>
+<table>
+<colgroup>
+<col style="width: 58%" />
+<col style="width: 41%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Action name (inside the app)</th>
+<th>What it tries to do</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Throttle CPU hogs</td>
+<td>Make the busiest heavy programs nicer / lower priority</td>
+</tr>
+<tr class="even">
+<td>Drop page caches</td>
+<td>Free memory that Linux is using as temporary file cache</td>
+</tr>
+<tr class="odd">
+<td>Reset swap</td>
+<td>Turn swap off and on again to clear stuck swap pressure</td>
+</tr>
+<tr class="even">
+<td>Purge caches &amp; temp</td>
+<td>Clean package caches, shrink logs a bit, remove scratch temp
+files</td>
+</tr>
+<tr class="odd">
+<td>Prune temp inodes</td>
+<td>Remove known scratch folders/files that waste file slots</td>
+</tr>
+<tr class="even">
+<td>Force powersave cooling</td>
+<td>Ask CPUs to use a cooler, lower-power mode</td>
+</tr>
+<tr class="odd">
+<td>Force GPU powersave</td>
+<td>Ask the GPU to run cooler / lower performance mode</td>
+</tr>
+<tr class="even">
+<td>Reap zombie parents</td>
+<td>Nudge parent processes that left stuck “zombie” children</td>
+</tr>
+<tr class="odd">
+<td>Pause user timers</td>
+<td>Pause some background maintenance timers (like apt daily)</td>
+</tr>
+<tr class="even">
+<td>Apt update / upgrade</td>
+<td>Refresh package lists or install upgrades (Updates tab)</td>
+</tr>
+</tbody>
+</table>
+<p>These are <strong>maintenance-style</strong> actions.<br />
+They are not magic “repair any broken PC” tools. They try common safe
+cleanups after you approve.</p>
+<hr />
+<h2 id="hardware-tab-how-that-part-works">Hardware tab (how that part
+works)</h2>
+<p>The Hardware tab builds a simple “component health report”:</p>
+<ul>
+<li>CPU, memory, storage, network adapters, USB devices, and related
+info</li>
+<li>Each component gets a health percentage</li>
+<li>If health is <strong>below 45%</strong>, the app advises:
+<strong>Replace this hardware</strong></li>
+</ul>
+<p>This is guidance based on status signals — not a lab
+certification.</p>
+<hr />
+<h2 id="updates-tab-how-that-part-works">Updates tab (how that part
+works)</h2>
+<p>Separately from the 3-second vitals loop:</p>
+<ol type="1">
+<li>App reads software update sources.</li>
+<li>It can ask apt what upgrades would happen (preview).</li>
+<li>If you choose to update/upgrade, you get a Yes/No confirm.</li>
+<li>If needed, the privileged helper runs the apt command after admin
+approval.</li>
+</ol>
+<p>So updates are <strong>manual and confirmed</strong>, not silent.</p>
+<hr />
+<h2 id="background-daemon-night-shift-pager">Background daemon
+(night-shift pager)</h2>
+<p>If enabled, the daemon:</p>
+<ul>
+<li>Checks health on a timer (about every <strong>20 seconds</strong> in
+the packaged service)</li>
+<li>If it sees a <strong>Critical</strong> issue, it can:
+<ul>
+<li>Send a desktop notification</li>
+<li>Open the main BOSS-Sentinel window (so you can approve a heal)</li>
+</ul></li>
+</ul>
+<p>The daemon itself does <strong>not</strong> auto-heal without
+you.<br />
+It pages you. You decide.</p>
+<p>It remembers which issues it already notified about (a small list in
+your cache folder), so it does not spam forever.</p>
+<hr />
+<h2 id="where-your-settings-and-notes-are-saved">Where your settings and
+notes are saved</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 35%" />
+<col style="width: 35%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>What</th>
+<th>Where</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Autoheal ON/OFF</td>
+<td><code>~/.config/boss-sentinel/settings.json</code></td>
+<td>Small text file in your home folder</td>
+</tr>
+<tr class="even">
+<td>Daemon “already notified” list</td>
+<td><code>~/.cache/vitaheal/notified.ids</code></td>
+<td>Avoids repeat spam</td>
+</tr>
+<tr class="odd">
+<td>Event log in the app</td>
+<td>In memory / on screen</td>
+<td>Session activity you can read in Logs</td>
+</tr>
+</tbody>
+</table>
+<p>There is <strong>no big hidden database</strong>.<br />
+The app is mostly live readings + a tiny preference file.</p>
+<hr />
+<h2 id="what-gets-installed-on-the-system-map">What gets installed on
+the system (map)</h2>
+<p>When you install the <code>.deb</code> package, key pieces land
+here:</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 52%" />
+<col style="width: 26%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Piece</th>
+<th>Typical location</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Launcher</td>
+<td><code>/usr/bin/boss-sentinel</code></td>
+<td>Starts the app quietly</td>
+</tr>
+<tr class="even">
+<td>Python program</td>
+<td><code>/usr/lib/python3/dist-packages/vitaheal/</code></td>
+<td>The actual brain and UI code</td>
+</tr>
+<tr class="odd">
+<td>Helper</td>
+<td><code>/usr/libexec/boss-sentinel/boss-sentinel-helper</code></td>
+<td>Privileged heal tool</td>
+</tr>
+<tr class="even">
+<td>Menu icon</td>
+<td><code>/usr/share/applications/…</code></td>
+<td>Shows in your app menu</td>
+</tr>
+<tr class="odd">
+<td>Permission rules</td>
+<td><code>/usr/share/polkit-1/actions/…</code></td>
+<td>Defines when the helper may run</td>
+</tr>
+<tr class="even">
+<td>User service</td>
+<td><code>/usr/lib/systemd/user/boss-sentinel-daemon.service</code></td>
+<td>Optional background watcher</td>
+</tr>
+</tbody>
+</table>
+<p>You launch a <strong>user app</strong>.<br />
+Only the helper briefly becomes admin when you approve a heal.</p>
+<hr />
+<h2 id="different-ways-to-run-it">Different ways to run it</h2>
+<table>
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 20%" />
+<col style="width: 56%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Mode</th>
+<th>How</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Normal window</td>
+<td><code>boss-sentinel</code></td>
+<td>Full UI, refreshes every ~3 seconds</td>
+</tr>
+<tr class="even">
+<td>One snapshot</td>
+<td><code>boss-sentinel --once</code></td>
+<td>Prints one health report as text/JSON, then exits</td>
+</tr>
+<tr class="odd">
+<td>Background</td>
+<td><code>boss-sentinel-daemon</code></td>
+<td>Watches quietly, notifies on critical issues</td>
+</tr>
+<tr class="even">
+<td>Demo / test</td>
+<td><code>--simulate-issue memory</code> (example)</td>
+<td>Pretends a critical problem so you can practice Yes/No</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="security-privacy-in-plain-words">Security &amp; privacy in plain
+words</h2>
+<p><strong>What it can see</strong></p>
+<ul>
+<li>Normal system health information that Linux already exposes to your
+user</li>
+<li>Hardware names and USB device names for the Hardware tab</li>
+<li>Package update information when you use the Updates tab</li>
+</ul>
+<p><strong>What it does not do</strong></p>
+<ul>
+<li>It does not upload your data to a cloud in this design</li>
+<li>It does not stay permanently logged in as root</li>
+<li>It does not heal without a Yes (Autoheal OFF = no auto prompts; even
+ON still asks)</li>
+</ul>
+<p><strong>Password prompts mean</strong></p>
+<ul>
+<li>“This next step needs administrator power.”</li>
+<li>Cancel = no change from the helper.</li>
+</ul>
+<hr />
+<h2 id="a-full-walk-through-example">A full walk-through example</h2>
+<p><strong>Scene:</strong> Your RAM is almost full.</p>
+<ol type="1">
+<li>Every 3 seconds, Memory specialist reads memory status.</li>
+<li>Value crosses the Critical line (95%).</li>
+<li>Health Engine lowers the score and creates a Memory issue.</li>
+<li>Screen turns more urgent; Overview shows the issue.</li>
+<li>If Autoheal is ON, a dialog appears: heal now?</li>
+<li>You click <strong>Yes</strong>.</li>
+<li>App asks the system to run the helper action
+<code>drop_caches</code>.</li>
+<li>You approve the admin prompt.</li>
+<li>Helper clears reclaimable caches and reports success.</li>
+<li>Next refresh shows improved memory (if caches were the main
+pressure).</li>
+<li>Logs record what happened.</li>
+</ol>
+<p>If you clicked <strong>No</strong>, nothing privileged runs.
+Monitoring continues.</p>
+<hr />
+<h2 id="how-to-explain-it-to-someone-else-in-20-seconds">How to explain
+it to someone else in 20 seconds</h2>
+<blockquote>
+<p>“BOSS-Sentinel is a local health dashboard for your Linux PC.<br />
+It reads system vitals, scores them, and only tries fixes after you say
+Yes.<br />
+Everyday work runs as your user. Admin power is borrowed briefly through
+a password prompt for specific cleanups.”</p>
+</blockquote>
+<hr />
+<h2 id="glossary-tiny-dictionary">Glossary (tiny dictionary)</h2>
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 60%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Word</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Backend</td>
+<td>The hidden work: collecting data, scoring, healing</td>
+</tr>
+<tr class="even">
+<td>Snapshot</td>
+<td>One full set of health readings at a moment in time</td>
+</tr>
+<tr class="odd">
+<td>Issue</td>
+<td>A named problem with a suggested fix</td>
+</tr>
+<tr class="even">
+<td>Autoheal</td>
+<td>Feature that offers Yes/No heal prompts for critical issues</td>
+</tr>
+<tr class="odd">
+<td>Daemon</td>
+<td>Background program without the main window</td>
+</tr>
+<tr class="even">
+<td>Polkit / pkexec</td>
+<td>Linux permission gate for admin actions</td>
+</tr>
+<tr class="odd">
+<td>Helper</td>
+<td>Small privileged program that performs one approved fix</td>
+</tr>
+<tr class="even">
+<td><code>.deb</code></td>
+<td>Debian/Ubuntu install package</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="summary">Summary</h2>
+<p>BOSS-Sentinel’s backend is a <strong>loop of reading → grading →
+showing → (optional) asking → (optional) fixing</strong>.</p>
+<ul>
+<li><strong>Reading</strong> uses Linux’s own status files and
+sensors.<br />
+</li>
+<li><strong>Grading</strong> uses clear warning/critical thresholds and
+a 0–100 score.<br />
+</li>
+<li><strong>Showing</strong> happens in a desktop window every few
+seconds.<br />
+</li>
+<li><strong>Fixing</strong> is interactive, preferenced by Autoheal
+ON/OFF, and admin-gated when needed.</li>
+</ul>
+<p>That is the whole heart of the system — kept simple on purpose.</p>
+<hr />
+<p><em>Document for Google Docs / sharing · BOSS-Sentinel backend
+explained simply · v1.2.8</em></p>
+</body>
+</html>
