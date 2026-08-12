@@ -1,0 +1,7 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: boss-optimize
+Source: https://localhost/boss-optimize
+
+Files: *
+Copyright: 2026 BOSS-Optimize Packagers
+License: GPL-3.0+

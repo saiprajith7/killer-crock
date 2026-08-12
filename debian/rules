@@ -1,0 +1,32 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+export PYBUILD_NAME = boss-optimize
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_auto_install:
+	dh_auto_install
+	install -d debian/boss-optimize/usr/libexec/boss-optimize
+	install -m 0755 scripts/boss-optimize-helper \
+		debian/boss-optimize/usr/libexec/boss-optimize/boss-optimize-helper
+	install -d debian/boss-optimize/usr/bin
+	install -m 0755 scripts/boss-optimize debian/boss-optimize/usr/bin/boss-optimize
+	install -d debian/boss-optimize/usr/share/applications
+	install -m 0644 data/desktop/boss-optimize.desktop \
+		debian/boss-optimize/usr/share/applications/org.bossoptimize.BossOptimize.desktop
+	ln -sf org.bossoptimize.BossOptimize.desktop \
+		debian/boss-optimize/usr/share/applications/boss-optimize.desktop
+	install -d debian/boss-optimize/usr/share/icons/hicolor/scalable/apps
+	install -m 0644 data/icons/boss-optimize.svg \
+		debian/boss-optimize/usr/share/icons/hicolor/scalable/apps/org.bossoptimize.BossOptimize.svg
+	ln -sf org.bossoptimize.BossOptimize.svg \
+		debian/boss-optimize/usr/share/icons/hicolor/scalable/apps/boss-optimize.svg
+	install -d debian/boss-optimize/usr/share/polkit-1/actions
+	install -m 0644 data/polkit/org.bossoptimize.policy \
+		debian/boss-optimize/usr/share/polkit-1/actions/org.bossoptimize.policy
+
+override_dh_builddeb:
+	mkdir -p dist
+	dh_builddeb --destdir=dist

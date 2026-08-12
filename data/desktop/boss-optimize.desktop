@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=BOSS-Optimize
+GenericName=Performance Optimizer
+Comment=Monitor services, processes, packages, I/O and optimize hardware allotment
+Exec=boss-optimize
+Icon=org.bossoptimize.BossOptimize
+Terminal=false
+Type=Application
+Categories=System;Monitor;Utility;
+Keywords=performance;optimize;cpu;memory;gpu;io;boss;
+StartupNotify=true
+StartupWMClass=org.bossoptimize.BossOptimize
+X-GNOME-UsesNotifications=true

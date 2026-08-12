@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Quiet BOSS-Optimize launcher
+set -uo pipefail
+_filter_stderr() {
+  while IFS= read -r line || [[ -n "${line}" ]]; do
+    case "${line}" in
+      *"libEGL warning:"*) continue ;;
+    esac
+    printf '%s\n' "${line}" >&2
+  done
+}
+python3 -m bossoptimize "$@" 2> >(_filter_stderr)
+exit $?

@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "boss-optimize"
+version = "1.0.2"
+description = "BOSS-Optimize — performance monitor with Yes/No hardware allotment"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "GPL-3.0-or-later" }
+authors = [{ name = "BOSS-Optimize" }]
+dependencies = []
+
+[project.scripts]
+boss-optimize = "bossoptimize.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+bossoptimize = ["ui/*.css"]

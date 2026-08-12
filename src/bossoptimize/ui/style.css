@@ -1,0 +1,209 @@
+/* BOSS-Optimize — slate + emerald performance theme */
+
+@define-color canvas #eef2f6;
+@define-color surface #ffffff;
+@define-color ink #0f172a;
+@define-color mist #334155;
+@define-color mute #64748b;
+@define-color accent #0f766e;
+@define-color accent-soft #ccfbf1;
+@define-color accent-deep #115e59;
+@define-color ok #059669;
+@define-color amber #d97706;
+@define-color fault #dc2626;
+
+* {
+  font-family: "JetBrains Mono", "Fira Code", "Hack", "IBM Plex Mono", monospace;
+  color: @mist;
+}
+
+window.boss-optimize-window {
+  background-color: @canvas;
+}
+
+.topbar {
+  background: transparent;
+  padding: 12px 20px 4px 20px;
+}
+
+.brand {
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: 2px;
+  color: @accent-deep;
+}
+
+.brand-sub {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: @mute;
+}
+
+button.close-x {
+  min-width: 34px;
+  min-height: 34px;
+}
+button.close-x:hover {
+  background: @fault;
+  color: white;
+}
+
+.status-strip {
+  padding: 8px 20px 0 20px;
+}
+.hero-status {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: @ink;
+}
+.hero-line {
+  font-size: 12px;
+  color: @mute;
+}
+
+.metric-row {
+  padding: 10px 20px;
+}
+.metric-chip {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.08);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-right: 8px;
+}
+.metric-title {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: @mute;
+  font-weight: 700;
+}
+.metric-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: @ink;
+}
+
+.tab-bar {
+  padding: 4px 16px 0 16px;
+}
+.tab-switcher {
+  margin: 0;
+}
+
+.tab-page {
+  padding: 8px 4px 16px 4px;
+}
+
+.section-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 800;
+  color: @accent-deep;
+  margin: 8px 0 6px 0;
+}
+
+.list-frame {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.08);
+  border-radius: 6px;
+  padding: 4px 0;
+}
+
+.row-title {
+  font-weight: 700;
+  color: @ink;
+}
+.row-sub {
+  font-size: 11px;
+  color: @mute;
+}
+.badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: @accent-soft;
+  color: @accent-deep;
+}
+.badge-bg {
+  background: alpha(@amber, 0.15);
+  color: @amber;
+}
+.badge-off {
+  background: alpha(@mute, 0.12);
+  color: @mute;
+}
+
+.optimize-card {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+}
+.optimize-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: @ink;
+}
+.optimize-body {
+  font-size: 12px;
+  color: @mist;
+}
+button.opt-yes {
+  background: @accent;
+  color: white;
+  font-weight: 800;
+  padding: 8px 16px;
+  border-radius: 6px;
+}
+button.opt-no {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.15);
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 6px;
+}
+
+.footer-meta {
+  padding: 6px 20px 12px 20px;
+  font-size: 11px;
+  color: @mute;
+}
+
+.smooth-scroll {
+  background: transparent;
+}
+
+.app-header {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.1);
+  border-radius: 6px 6px 0 0;
+  padding: 8px 10px;
+}
+.app-header label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: @mute;
+}
+.app-grid {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.08);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+}
+.app-row {
+  padding: 8px 10px;
+  border-bottom: 1px solid alpha(@ink, 0.06);
+}
+.app-row-title {
+  font-weight: 700;
+  color: @ink;
+  font-size: 12px;
+}
+.app-row-cell {
+  font-size: 11px;
+  color: @mist;
+}
