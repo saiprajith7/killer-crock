@@ -1,0 +1,6 @@
+boss-optimize (1.0.0-1) unstable; urgency=medium
+
+  * Initial release: services, processes, packages, storage I/O, GPU,
+    and Yes/No performance optimize (hardware allotment via polkit helper).
+
+ -- BOSS-Optimize Packagers <packagers@boss-optimize.local>  Wed, 12 Aug 2026 05:40:00 +0000
