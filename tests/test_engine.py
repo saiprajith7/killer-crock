@@ -5,6 +5,7 @@ from __future__ import annotations
 import unittest
 
 from bossoptimize.monitor.appsessions import AppSessionTracker, classify_app
+from bossoptimize.monitor.cache import collect_cache
 from bossoptimize.monitor.engine import OptimizeEngine
 from bossoptimize.monitor.disk import list_disks
 from bossoptimize.monitor.gpu import read_gpu
@@ -105,6 +106,15 @@ class AppSessionTests(unittest.TestCase):
         closed = [r for r in rows2 if not r.running and r.app_id == "firefox"]
         self.assertTrue(len(closed) >= 1)
         self.assertIsNotNone(closed[0].close_time)
+
+
+class CacheTests(unittest.TestCase):
+    def test_collect_cache_has_system_entries(self) -> None:
+        snap = collect_cache([])
+        self.assertGreater(snap.ram_total_mb, 0)
+        kinds = {e.kind for e in snap.entries}
+        self.assertIn("system", kinds)
+        self.assertTrue(any(e.clearable for e in snap.entries))
 
 
 if __name__ == "__main__":

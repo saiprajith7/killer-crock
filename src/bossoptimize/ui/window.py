@@ -12,9 +12,10 @@ from gi.repository import Adw, GLib, Gtk, Pango  # noqa: E402
 
 from bossoptimize import APP_NAME, BRAND
 from bossoptimize.monitor.appsessions import AppSessionTracker, format_open_close
+from bossoptimize.monitor.cache import collect_cache
 from bossoptimize.monitor.engine import OptimizeEngine
 from bossoptimize.monitor.models import PerformanceSnapshot
-from bossoptimize.optimize.actions import apply_plan
+from bossoptimize.optimize.actions import apply_plan, perform_optimize
 
 CSS_PATH = Path(__file__).with_name("style.css")
 
@@ -141,6 +142,7 @@ class OptimizeWindow(Adw.ApplicationWindow):
         self.stack.add_titled(self._build_processes(), "processes", "Processes")
         self.stack.add_titled(self._build_packages(), "packages", "Packages")
         self.stack.add_titled(self._build_io(), "io", "Storage I/O")
+        self.stack.add_titled(self._build_cache(), "cache", "Cache")
         self.stack.add_titled(self._build_optimize(), "optimize", "Optimize")
         root.append(self.stack)
 
@@ -284,6 +286,74 @@ class OptimizeWindow(Adw.ApplicationWindow):
         page.append(_scroll(self.io_proc_list))
         return page
 
+    def _build_cache(self) -> Gtk.Widget:
+        page = self._page()
+        page.append(_section("CACHE — SYSTEM · DISK · PROCESS"))
+        self.cache_hint = Gtk.Label(label="Scanning caches…", xalign=0)
+        self.cache_hint.add_css_class("hero-line")
+        self.cache_hint.set_wrap(True)
+        page.append(self.cache_hint)
+
+        header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        header.add_css_class("app-header")
+        for title, expand, width in (
+            ("CACHE / PROCESS", True, 18),
+            ("PID", False, 8),
+            ("SIZE", False, 8),
+            ("CPU", False, 7),
+            ("RAM %", False, 7),
+            ("DISK I/O", False, 10),
+            ("GPU", False, 7),
+            ("TYPE", False, 10),
+        ):
+            lab = Gtk.Label(label=title, xalign=0)
+            if expand:
+                lab.set_hexpand(True)
+                lab.set_width_chars(width)
+            else:
+                lab.set_width_chars(width)
+            header.append(lab)
+        page.append(header)
+
+        self.cache_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        self.cache_box.add_css_class("app-grid")
+        page.append(_scroll(self.cache_box))
+
+        card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        card.add_css_class("optimize-card")
+        self.cache_clear_title = Gtk.Label(label="Clear cache?", xalign=0)
+        self.cache_clear_title.add_css_class("optimize-title")
+        self.cache_clear_body = Gtk.Label(
+            label="YES clears reclaimable RAM page cache, APT archives, temp scratch, "
+            "and your ~/.cache (admin prompt may appear).",
+            xalign=0,
+        )
+        self.cache_clear_body.add_css_class("optimize-body")
+        self.cache_clear_body.set_wrap(True)
+        card.append(self.cache_clear_title)
+        card.append(self.cache_clear_body)
+
+        btns = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        self.btn_cache_yes = Gtk.Button(label="YES — Clear cache now")
+        self.btn_cache_yes.add_css_class("opt-yes")
+        self.btn_cache_yes.connect("clicked", self._on_cache_clear_yes)
+        self.btn_cache_no = Gtk.Button(label="NO — Keep cache")
+        self.btn_cache_no.add_css_class("opt-no")
+        self.btn_cache_no.connect("clicked", self._on_cache_clear_no)
+        self.btn_cache_ram = Gtk.Button(label="Clear RAM page cache only")
+        self.btn_cache_ram.connect("clicked", self._on_cache_clear_ram_only)
+        btns.append(self.btn_cache_yes)
+        btns.append(self.btn_cache_no)
+        btns.append(self.btn_cache_ram)
+        card.append(btns)
+
+        self.cache_result = Gtk.Label(label="", xalign=0)
+        self.cache_result.add_css_class("optimize-body")
+        self.cache_result.set_wrap(True)
+        card.append(self.cache_result)
+        page.append(card)
+        return page
+
     def _build_optimize(self) -> Gtk.Widget:
         page = self._page()
         page.append(_section("OPTIMIZE PERFORMANCE"))
@@ -388,6 +458,38 @@ class OptimizeWindow(Adw.ApplicationWindow):
             f"Closed: {closed}\n"
             f"{session.cmdline[:200]}"
         )
+        return row
+
+    def _cache_row_widget(self, entry) -> Gtk.Widget:
+        row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        row.add_css_class("app-row")
+
+        def cell(text: str, expand: bool = False, width: int = 7) -> Gtk.Label:
+            lab = Gtk.Label(label=text, xalign=0)
+            lab.add_css_class("app-row-cell" if not expand else "app-row-title")
+            lab.set_ellipsize(Pango.EllipsizeMode.END)
+            if expand:
+                lab.set_hexpand(True)
+                lab.set_width_chars(18)
+            else:
+                lab.set_width_chars(width)
+            return lab
+
+        pid = str(entry.pid) if entry.pid is not None else "—"
+        row.append(cell(entry.name, expand=True))
+        row.append(cell(pid, width=8))
+        row.append(cell(f"{entry.size_mb:.0f}M", width=8))
+        row.append(cell(f"{entry.cpu_percent:.1f}%"))
+        row.append(cell(f"{entry.mem_percent:.1f}%"))
+        row.append(cell(_bytes_human(entry.io_total_bps), width=10))
+        row.append(cell(f"{entry.gpu_percent:.1f}%"))
+        row.append(cell(entry.kind.upper(), width=10))
+        tip = f"{entry.name}\n{entry.detail}\nSize: {entry.size_mb} MB"
+        if entry.pid is not None:
+            tip += f"\nPID: {entry.pid}"
+        if entry.clearable:
+            tip += f"\nClearable via: {entry.clear_action}"
+        row.set_tooltip_text(tip)
         return row
 
     def _row(self, title: str, subtitle: str, badge: str = "", badge_class: str = "badge") -> Gtk.ListBoxRow:
@@ -563,6 +665,22 @@ class OptimizeWindow(Adw.ApplicationWindow):
                 )
             )
 
+        # Cache tab
+        cache = collect_cache(snap.processes)
+        self.cache_hint.set_text(
+            f"RAM used {cache.ram_used_percent}% of {cache.ram_total_mb:.0f} MB · "
+            f"page cache {cache.ram_cached_mb:.0f} MB · buffers {cache.ram_buffers_mb:.0f} MB · "
+            f"~{cache.total_clearable_mb:.0f} MB clearable"
+        )
+        self.cache_clear_body.set_text(
+            f"About {cache.total_clearable_mb:.0f} MB can be cleared. "
+            "YES clears RAM page cache + APT + temp scratch + ~/.cache "
+            "(admin prompt may appear). Process rows are informational only."
+        )
+        self._clear_box(self.cache_box)
+        for entry in cache.entries[:100]:
+            self.cache_box.append(self._cache_row_widget(entry))
+
         self._paint_optimize(force=False)
         self.footer.set_text(
             f"BOSS-Optimize · refreshed · CPU {snap.cpu_percent}% · RAM {snap.mem_percent}%"
@@ -588,6 +706,49 @@ class OptimizeWindow(Adw.ApplicationWindow):
                     "badge",
                 )
             )
+
+    def _on_cache_clear_no(self, *_args) -> None:
+        self.cache_result.set_text("No cache cleared. Monitoring continues.")
+
+    def _on_cache_clear_ram_only(self, *_args) -> None:
+        self._run_cache_clear(["drop_caches"], "Clearing RAM page cache…")
+
+    def _on_cache_clear_yes(self, *_args) -> None:
+        self._run_cache_clear(
+            ["clear_all_caches"],
+            "Clearing all clearable caches… approve the admin prompt if asked.",
+        )
+
+    def _run_cache_clear(self, actions: list[str], pending_msg: str) -> None:
+        if self._busy:
+            return
+        self._busy = True
+        self.btn_cache_yes.set_sensitive(False)
+        self.btn_cache_ram.set_sensitive(False)
+        self.cache_result.set_text(pending_msg)
+
+        def work() -> None:
+            lines = []
+            for aid in actions:
+                r = perform_optimize(aid)
+                mark = "OK" if r.ok else "FAIL"
+                lines.append(f"[{mark}] {r.action}: {r.message}")
+                if r.details:
+                    lines.append(f"  {r.details[:200]}")
+            text = "\n".join(lines) if lines else "No cache actions ran."
+
+            def done() -> None:
+                self.cache_result.set_text(text)
+                self._busy = False
+                self.btn_cache_yes.set_sensitive(True)
+                self.btn_cache_ram.set_sensitive(True)
+                self._refresh()
+
+            GLib.idle_add(done)
+
+        import threading
+
+        threading.Thread(target=work, daemon=True).start()
 
     def _on_optimize_no(self, *_args) -> None:
         self.opt_result.set_text("No changes applied. Monitoring continues with current allotment.")

@@ -126,6 +126,119 @@ def drop_caches() -> int:
         return emit(False, f"drop_caches failed: {exc}")
 
 
+def clear_apt_cache() -> int:
+    try:
+        proc = subprocess.run(
+            ["apt-get", "clean"],
+            capture_output=True,
+            text=True,
+            timeout=90,
+        )
+        return emit(
+            proc.returncode == 0,
+            "APT archive cache cleaned",
+            proc.stderr.strip() or proc.stdout.strip(),
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        return emit(False, f"apt-get clean failed: {exc}")
+
+
+def clear_tmp_scratch() -> int:
+    removed = 0
+    for root in (Path("/tmp"), Path("/var/tmp")):
+        if not root.exists():
+            continue
+        for p in root.iterdir():
+            name = p.name
+            if name.startswith(".") or name in {"systemd-private"}:
+                continue
+            if name.startswith(("boss-optimize-", "vitaheal-", "tmp.", "scrap-", "cache-")):
+                try:
+                    if p.is_file():
+                        p.unlink()
+                        removed += 1
+                    elif p.is_dir():
+                        for child in p.rglob("*"):
+                            if child.is_file():
+                                try:
+                                    child.unlink()
+                                    removed += 1
+                                except OSError:
+                                    pass
+                except OSError:
+                    continue
+    return emit(True, f"Cleared scratch temp files ({removed} removed)")
+
+
+def clear_user_cache(paths: list[str]) -> int:
+    """Clear given cache directories (passed from UI; still root-capable)."""
+    import shutil
+
+    freed = 0
+    details = []
+    targets = paths or [str(Path.home() / ".cache")]
+    # When running as root via pkexec, HOME may be /root — prefer SUDO_UID home
+    sudo_uid = os.environ.get("PKEXEC_UID") or os.environ.get("SUDO_UID")
+    home = Path.home()
+    if sudo_uid and sudo_uid.isdigit():
+        try:
+            import pwd
+
+            home = Path(pwd.getpwuid(int(sudo_uid)).pw_dir)
+        except Exception:  # noqa: BLE001
+            pass
+    default_cache = home / ".cache"
+    if not paths:
+        targets = [str(default_cache)]
+
+    for raw in targets:
+        path = Path(raw)
+        if not path.exists():
+            details.append(f"missing:{path}")
+            continue
+        # Safety: only under home .cache, or known system cache dirs
+        allowed = False
+        try:
+            resolved = path.resolve()
+            if str(resolved).startswith(str((home / ".cache").resolve())):
+                allowed = True
+            if str(resolved).startswith("/var/cache/apt"):
+                allowed = True
+        except OSError:
+            allowed = False
+        if not allowed:
+            details.append(f"skipped:{path}")
+            continue
+        try:
+            if path.is_dir():
+                for child in path.iterdir():
+                    try:
+                        if child.is_dir():
+                            shutil.rmtree(child, ignore_errors=True)
+                        else:
+                            child.unlink()
+                        freed += 1
+                    except OSError:
+                        continue
+            details.append(str(path))
+        except OSError as exc:
+            details.append(f"{path}:{exc}")
+    return emit(True, f"User/system cache cleared ({freed} entries)", "; ".join(details[:8]))
+
+
+def clear_all_caches() -> int:
+    msgs = []
+    drop_caches()
+    msgs.append("drop_caches")
+    clear_apt_cache()
+    msgs.append("apt_clean")
+    clear_tmp_scratch()
+    msgs.append("tmp_scratch")
+    clear_user_cache([])
+    msgs.append("user_cache")
+    return emit(True, "Full cache clear attempted", ", ".join(msgs))
+
+
 ACTIONS = {
     "cpu_performance": lambda args: cpu_performance(),
     "power_performance": lambda args: power_performance(),
@@ -133,6 +246,10 @@ ACTIONS = {
     "renice_background": lambda args: renice_background(args),
     "ionice_background": lambda args: ionice_background(args),
     "drop_caches": lambda args: drop_caches(),
+    "clear_apt_cache": lambda args: clear_apt_cache(),
+    "clear_tmp_scratch": lambda args: clear_tmp_scratch(),
+    "clear_user_cache": lambda args: clear_user_cache(args),
+    "clear_all_caches": lambda args: clear_all_caches(),
 }
 
 

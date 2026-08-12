@@ -1,14 +1,14 @@
 # BOSS-Optimize releases
 
-Current package: **boss-optimize 1.0.1**
+Current package: **boss-optimize 1.0.2**
 
 ## Install
 
 ```bash
 cd ~/Downloads
-curl -L -o boss-optimize_1.0.1-1_all.deb \
-  https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/boss-optimize-performance-02f6/releases/boss-optimize_1.0.1-1_all.deb
-sudo apt-get install -y ./boss-optimize_1.0.1-1_all.deb
+curl -L -o boss-optimize_1.0.2-1_all.deb \
+  https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/boss-optimize-performance-02f6/releases/boss-optimize_1.0.2-1_all.deb
+sudo apt-get install -y ./boss-optimize_1.0.2-1_all.deb
 boss-optimize
 ```
 

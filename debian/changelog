@@ -1,3 +1,10 @@
+boss-optimize (1.0.2-1) unstable; urgency=medium
+
+  * Add Cache tab: system/disk/process cache with PID + hardware columns
+    and Yes/No clear (RAM page cache, APT, temp, ~/.cache).
+
+ -- BOSS-Optimize Packagers <packagers@boss-optimize.local>  Wed, 12 Aug 2026 06:35:00 +0000
+
 boss-optimize (1.0.1-1) unstable; urgency=medium
 
   * Add Apps tab: per-application CPU/RAM/Disk I/O/GPU columns with PID

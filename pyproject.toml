@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "boss-optimize"
-version = "1.0.1"
+version = "1.0.2"
 description = "BOSS-Optimize — performance monitor with Yes/No hardware allotment"
 readme = "README.md"
 requires-python = ">=3.10"
