@@ -175,3 +175,35 @@ button.opt-no {
 .smooth-scroll {
   background: transparent;
 }
+
+.app-header {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.1);
+  border-radius: 6px 6px 0 0;
+  padding: 8px 10px;
+}
+.app-header label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: @mute;
+}
+.app-grid {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.08);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+}
+.app-row {
+  padding: 8px 10px;
+  border-bottom: 1px solid alpha(@ink, 0.06);
+}
+.app-row-title {
+  font-weight: 700;
+  color: @ink;
+  font-size: 12px;
+}
+.app-row-cell {
+  font-size: 11px;
+  color: @mist;
+}

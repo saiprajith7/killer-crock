@@ -1,3 +1,10 @@
+boss-optimize (1.0.1-1) unstable; urgency=medium
+
+  * Add Apps tab: per-application CPU/RAM/Disk I/O/GPU columns with PID
+    and open/close timestamps (session history under ~/.config/boss-optimize/).
+
+ -- BOSS-Optimize Packagers <packagers@boss-optimize.local>  Wed, 12 Aug 2026 06:20:00 +0000
+
 boss-optimize (1.0.0-1) unstable; urgency=medium
 
   * Initial release: services, processes, packages, storage I/O, GPU,

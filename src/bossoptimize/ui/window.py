@@ -11,6 +11,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, GLib, Gtk, Pango  # noqa: E402
 
 from bossoptimize import APP_NAME, BRAND
+from bossoptimize.monitor.appsessions import AppSessionTracker, format_open_close
 from bossoptimize.monitor.engine import OptimizeEngine
 from bossoptimize.monitor.models import PerformanceSnapshot
 from bossoptimize.optimize.actions import apply_plan
@@ -68,6 +69,7 @@ class OptimizeWindow(Adw.ApplicationWindow):
         self.add_css_class("boss-optimize-window")
 
         self.engine = OptimizeEngine()
+        self.sessions = AppSessionTracker()
         self._last: PerformanceSnapshot | None = None
         self._plan: dict | None = None
         self._busy = False
@@ -102,7 +104,7 @@ class OptimizeWindow(Adw.ApplicationWindow):
         self.status_label = Gtk.Label(label="SCANNING SYSTEM PERFORMANCE", xalign=0)
         self.status_label.add_css_class("hero-status")
         self.blurb = Gtk.Label(
-            label="Services · processes · packages · disk I/O · GPU · optimize allotment",
+            label="Services · apps · processes · packages · disk I/O · GPU · optimize",
             xalign=0,
         )
         self.blurb.add_css_class("hero-line")
@@ -134,6 +136,7 @@ class OptimizeWindow(Adw.ApplicationWindow):
         root.append(bar)
 
         self.stack.add_titled(self._build_overview(), "overview", "Overview")
+        self.stack.add_titled(self._build_apps(), "apps", "Apps")
         self.stack.add_titled(self._build_services(), "services", "Services")
         self.stack.add_titled(self._build_processes(), "processes", "Processes")
         self.stack.add_titled(self._build_packages(), "packages", "Packages")
@@ -182,6 +185,50 @@ class OptimizeWindow(Adw.ApplicationWindow):
         self.ov_list.add_css_class("list-frame")
         self.ov_list.set_selection_mode(Gtk.SelectionMode.NONE)
         page.append(_scroll(self.ov_list))
+        return page
+
+    def _build_apps(self) -> Gtk.Widget:
+        """Per-application hardware columns + PID + open/close times."""
+        page = self._page()
+        page.append(_section("APPLICATIONS — HARDWARE BY COLUMN"))
+        self.apps_hint = Gtk.Label(
+            label="Open Firefox or any app — it appears here with PID, CPU, RAM, Disk I/O, GPU, open/close time.",
+            xalign=0,
+        )
+        self.apps_hint.add_css_class("hero-line")
+        self.apps_hint.set_wrap(True)
+        page.append(self.apps_hint)
+
+        # Column header
+        header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        header.add_css_class("app-header")
+        for title, expand in (
+            ("APPLICATION", True),
+            ("PID", False),
+            ("CPU", False),
+            ("RAM", False),
+            ("DISK I/O", False),
+            ("GPU", False),
+            ("OPENED", False),
+            ("CLOSED", False),
+            ("STATE", False),
+        ):
+            lab = Gtk.Label(label=title, xalign=0)
+            if expand:
+                lab.set_hexpand(True)
+                lab.set_width_chars(18)
+            elif title in {"OPENED", "CLOSED"}:
+                lab.set_width_chars(19)
+            elif title in {"DISK I/O", "PID"}:
+                lab.set_width_chars(10)
+            else:
+                lab.set_width_chars(7)
+            header.append(lab)
+        page.append(header)
+
+        self.apps_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        self.apps_box.add_css_class("app-grid")
+        page.append(_scroll(self.apps_box))
         return page
 
     def _build_services(self) -> Gtk.Widget:
@@ -287,6 +334,62 @@ class OptimizeWindow(Adw.ApplicationWindow):
             listbox.remove(child)
             child = nxt
 
+    def _clear_box(self, box: Gtk.Box) -> None:
+        child = box.get_first_child()
+        while child is not None:
+            nxt = child.get_next_sibling()
+            box.remove(child)
+            child = nxt
+
+    def _app_row_widget(self, session) -> Gtk.Widget:
+        from bossoptimize.monitor.appsessions import AppSession
+
+        assert isinstance(session, AppSession)
+        opened, closed = format_open_close(session)
+        row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        row.add_css_class("app-row")
+
+        def cell(text: str, expand: bool = False, width: int = 7) -> Gtk.Label:
+            lab = Gtk.Label(label=text, xalign=0)
+            lab.add_css_class("app-row-cell" if not expand else "app-row-title")
+            lab.set_ellipsize(Pango.EllipsizeMode.END)
+            if expand:
+                lab.set_hexpand(True)
+                lab.set_width_chars(18)
+            else:
+                lab.set_width_chars(width)
+            return lab
+
+        pids = ",".join(str(p) for p in session.pids[:4]) if session.pids else "—"
+        if len(session.pids) > 4:
+            pids += "…"
+        state = "RUNNING" if session.running else "CLOSED"
+        if session.running and session.background:
+            state = "BG"
+
+        row.append(cell(session.app_name, expand=True))
+        row.append(cell(pids, width=10))
+        row.append(cell(f"{session.cpu_percent:.1f}%"))
+        row.append(cell(f"{session.mem_rss_mb:.0f}M"))
+        row.append(cell(_bytes_human(session.io_total_bps), width=10))
+        row.append(cell(f"{session.gpu_percent:.1f}%"))
+        row.append(cell(opened, width=19))
+        row.append(cell(closed, width=19))
+        row.append(cell(state))
+        row.set_tooltip_text(
+            f"{session.app_name}\n"
+            f"PIDs: {', '.join(str(p) for p in session.pids) or '—'}\n"
+            f"CPU: {session.cpu_percent}%\n"
+            f"RAM: {session.mem_rss_mb} MB ({session.mem_percent}%)\n"
+            f"Disk I/O: {_bytes_human(session.io_total_bps)} "
+            f"(read {session.disk_read_bytes} B / write {session.disk_write_bytes} B)\n"
+            f"GPU: {session.gpu_percent}%\n"
+            f"Opened: {opened}\n"
+            f"Closed: {closed}\n"
+            f"{session.cmdline[:200]}"
+        )
+        return row
+
     def _row(self, title: str, subtitle: str, badge: str = "", badge_class: str = "badge") -> Gtk.ListBoxRow:
         row = Gtk.ListBoxRow()
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
@@ -360,6 +463,18 @@ class OptimizeWindow(Adw.ApplicationWindow):
                     bcls,
                 )
             )
+
+        # Apps tab — sessions with hardware columns + open/close
+        sessions = self.sessions.update(snap.processes)
+        running_apps = sum(1 for s in sessions if s.running)
+        closed_apps = sum(1 for s in sessions if not s.running)
+        self.apps_hint.set_text(
+            f"{running_apps} open now · {closed_apps} recently closed · "
+            "columns: Application · PID · CPU · RAM · Disk I/O · GPU · Opened · Closed"
+        )
+        self._clear_box(self.apps_box)
+        for sess in sessions[:120]:
+            self.apps_box.append(self._app_row_widget(sess))
 
         # Services
         self.svc_hint.set_text(f"{running_svc} running / {len(snap.services)} listed")
