@@ -1,3 +1,10 @@
+boss-sentinel (2.0.2-1) unstable; urgency=medium
+
+  * Rebuild on Debian 12 (glibc 2.36) for BOSS Linux compatibility.
+  * Stop bundling Ubuntu 24.04 gtkmm libs that required GLIBC_2.38+.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Thu, 13 Aug 2026 12:00:00 +0000
+
 boss-sentinel (2.0.1-1) unstable; urgency=medium
 
   * Bundle gtkmm/glibmm runtime libs for BOSS DebVerify offline installs.

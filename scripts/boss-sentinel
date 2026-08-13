@@ -15,9 +15,9 @@ if [[ -z "$BIN" ]]; then
   exit 1
 fi
 
-# Prefer bundled gtkmm/glibmm when present (BOSS DebVerify / offline installs)
+# Only prepend bundled libs if present AND system gtkmm is missing
 LIBDIR="$(dirname "$BIN")"
-if [[ -d "$LIBDIR" ]]; then
+if [[ -e "$LIBDIR/libgtkmm-4.0.so.0" ]] && ! ldconfig -p 2>/dev/null | grep -q 'libgtkmm-4.0.so.0'; then
   export LD_LIBRARY_PATH="${LIBDIR}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 fi
 

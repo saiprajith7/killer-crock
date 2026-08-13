@@ -2,7 +2,7 @@
 # Install BOSS-Sentinel on BOSS Linux / Debian without DebVerify blocking local packages.
 set -euo pipefail
 
-DEB_URL="${BOSS_SENTINEL_DEB_URL:-https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/boss-sentinel-cpp-unified-02f6/releases/boss-sentinel_2.0.1-1_amd64.deb}"
+DEB_URL="${BOSS_SENTINEL_DEB_URL:-https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/boss-sentinel-cpp-unified-02f6/releases/boss-sentinel_2.0.2-1_amd64.deb}"
 WORKDIR="${TMPDIR:-/tmp}/boss-sentinel-install"
 mkdir -p "$WORKDIR"
 cd "$WORKDIR"

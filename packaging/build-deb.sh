@@ -1,20 +1,25 @@
 #!/usr/bin/env bash
 # Build Release binary and produce releases/boss-sentinel_<ver>-1_<arch>.deb
+# Prefer building on Debian 12 / BOSS (glibc 2.36) so the binary runs there.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 VERSION="$(grep -E '^project\(' CMakeLists.txt | sed -n 's/.*VERSION \([0-9.]*\).*/\1/p' | head -1)"
-VERSION="${VERSION:-2.0.1}"
+VERSION="${VERSION:-2.0.2}"
 ARCH="$(dpkg --print-architecture)"
 PKG="boss-sentinel_${VERSION}-1_${ARCH}"
+# Bundle gtkmm only when explicitly requested (not for Debian 12 / BOSS targets)
+BUNDLE_LIBS="${BOSS_BUNDLE_LIBS:-0}"
 
 chmod +x scripts/boss-sentinel scripts/boss-sentinel-helper scripts/install-boss-sentinel.sh debian/rules || true
 
+echo "==> Host glibc: $(ldd --version | head -1)"
 echo "==> Configuring CMake"
 rm -rf build
 export CXX="${CXX:-g++}"
 if ! echo 'int main(){return 0;}' | "$CXX" -x c++ - -lstdc++ -o /tmp/boss-cxx-test 2>/dev/null; then
+  if command -v g++-12 >/dev/null 2>&1; then export CXX=g++-12; fi
   if command -v g++-13 >/dev/null 2>&1; then export CXX=g++-13; fi
 fi
 rm -f /tmp/boss-cxx-test
@@ -22,6 +27,15 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
 
 echo "==> Building"
 cmake --build build -j"$(nproc)"
+
+# Sanity: refuse Ubuntu-noble binaries that need GLIBC_2.38 when targeting BOSS
+if command -v objdump >/dev/null; then
+  if objdump -T build/boss-sentinel-bin 2>/dev/null | grep -q 'GLIBC_2\.3[89]\|GLIBC_2\.[4-9]'; then
+    echo "ERROR: binary requires glibc >= 2.38; rebuild on Debian 12 / BOSS." >&2
+    echo "Hint: sudo chroot /opt/bookworm-root bash -lc 'cd /workspace && ./packaging/build-deb.sh'" >&2
+    exit 1
+  fi
+fi
 
 echo "==> Staging package tree"
 STAGE="$ROOT/build/stage/$PKG"
@@ -46,30 +60,27 @@ install -m 0644 data/icons/org.bosssentinel.BossSentinel.svg "$STAGE/usr/share/i
 install -m 0644 data/polkit/org.bosssentinel.policy "$STAGE/usr/share/polkit-1/actions/"
 install -m 0644 docs/BUILD.md docs/SYSTEM_DESIGN.md README.md "$STAGE/usr/share/doc/boss-sentinel/" 2>/dev/null || true
 
-# Bundle gtkmm C++ binding libs so BOSS DebVerify outages do not block launch
-echo "==> Bundling gtkmm runtime libraries"
-bundle_one() {
-  local name="$1"
-  local src
-  src="$(ldconfig -p | awk -v n="$name" '$1==n {print $NF; exit}')"
-  if [[ -z "$src" || ! -e "$src" ]]; then
-    echo "WARN: missing $name" >&2
-    return 0
-  fi
-  # Copy real file + preserve soname symlink name
-  local real
-  real="$(readlink -f "$src")"
-  install -m 0644 "$real" "$STAGE/usr/lib/boss-sentinel/$(basename "$real")"
-  ln -sfn "$(basename "$real")" "$STAGE/usr/lib/boss-sentinel/$name"
-}
-for lib in libgtkmm-4.0.so.0 libgiomm-2.68.so.1 libglibmm-2.68.so.1 \
-           libsigc-3.0.so.0 libcairomm-1.16.so.1 libpangomm-2.48.so.1; do
-  bundle_one "$lib"
-done
+if [[ "$BUNDLE_LIBS" == "1" ]]; then
+  echo "==> Bundling gtkmm runtime libraries (BOSS_BUNDLE_LIBS=1)"
+  bundle_one() {
+    local name="$1"
+    local src
+    src="$(ldconfig -p | awk -v n="$name" '$1==n {print $NF; exit}')"
+    [[ -n "$src" && -e "$src" ]] || return 0
+    local real
+    real="$(readlink -f "$src")"
+    install -m 0644 "$real" "$STAGE/usr/lib/boss-sentinel/$(basename "$real")"
+    ln -sfn "$(basename "$real")" "$STAGE/usr/lib/boss-sentinel/$name"
+  }
+  for lib in libgtkmm-4.0.so.0 libgiomm-2.68.so.1 libglibmm-2.68.so.1 \
+             libsigc-3.0.so.0 libcairomm-1.16.so.1 libpangomm-2.48.so.1; do
+    bundle_one "$lib"
+  done
+fi
 
-# Soft Depends: only packages almost always present; gtkmm is bundled
 SIZE_KB="$(du -sk "$STAGE/usr" | awk '{print $1}')"
 
+# Debian 12 / BOSS package names (no t64 suffix)
 cat > "$STAGE/DEBIAN/control" <<EOF
 Package: boss-sentinel
 Version: ${VERSION}-1
@@ -77,14 +88,13 @@ Section: utils
 Priority: optional
 Architecture: ${ARCH}
 Maintainer: BOSS-Sentinel Packagers <packagers@boss-sentinel.local>
-Depends: libgtk-4-1, python3
+Depends: libgtkmm-4.0-0, libglibmm-2.68-1, libgtk-4-1, libsigc++-3.0-0, libcairomm-1.16-1, libpangomm-2.48-1, python3
 Recommends: pkexec | policykit-1, power-profiles-daemon, fonts-hack | fonts-jetbrains-mono
 Installed-Size: ${SIZE_KB}
 Homepage: https://github.com/saiprajith7/killer-crock
 Description: BOSS-Sentinel — unified auto-heal and performance optimizer
- C++ GTK4 monitor that detects pressure, prompts for auto-heal,
- optimizes performance, and logs every action. Ships bundled gtkmm
- libraries for BOSS Linux DebVerify-constrained environments.
+ C++ GTK4 monitor built for Debian 12 / BOSS Linux (glibc 2.36).
+ Detects pressure, prompts for auto-heal, optimizes performance, and logs actions.
 EOF
 
 install -m 0755 debian/postinst "$STAGE/DEBIAN/postinst"
@@ -92,7 +102,6 @@ install -m 0755 debian/prerm "$STAGE/DEBIAN/prerm"
 
 mkdir -p "$ROOT/releases" "$ROOT/dist"
 OUT="$ROOT/releases/${PKG}.deb"
-# Keep a stable latest alias name for docs
 LATEST="$ROOT/releases/boss-sentinel_latest_amd64.deb"
 echo "==> Building deb: $OUT"
 if command -v fakeroot >/dev/null 2>&1; then
@@ -104,4 +113,10 @@ cp -f "$OUT" "$ROOT/dist/"
 cp -f "$OUT" "$LATEST"
 ls -lah "$OUT"
 dpkg-deb -I "$OUT" | head -40
+# Print max required glibc symbol if available
+if command -v objdump >/dev/null; then
+  echo "==> GLIBC symbols used (highest):"
+  objdump -T "$STAGE/usr/lib/boss-sentinel/boss-sentinel-bin" 2>/dev/null \
+    | grep -oE 'GLIBC_[0-9.]+' | sort -Vu | tail -5 || true
+fi
 echo "OK: $OUT"

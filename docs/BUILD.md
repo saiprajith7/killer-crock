@@ -1,6 +1,27 @@
 # Building BOSS-Sentinel
 
-## Dependencies (Ubuntu / Debian)
+## Target platform
+
+BOSS Linux is based on **Debian 12 (bookworm)** with **glibc 2.36**.
+
+Build the release `.deb` **inside a Debian 12 environment** (chroot or container).
+Building on Ubuntu 24.04 produces binaries that require `GLIBC_2.38+` and will not run on BOSS.
+
+### Bookworm chroot (recommended)
+
+```bash
+sudo debootstrap bookworm /opt/bookworm-root http://deb.debian.org/debian
+sudo mount --bind "$PWD" /opt/bookworm-root/workspace
+sudo chroot /opt/bookworm-root bash -lc '
+  apt-get update
+  apt-get install -y build-essential cmake pkg-config g++ \
+    libgtkmm-4.0-dev libglibmm-2.68-dev libgtk-4-dev python3 fakeroot
+  cd /workspace && ./packaging/build-deb.sh
+'
+```
+
+## Dependencies (Ubuntu / Debian build host)
+
 
 ```bash
 sudo apt-get update

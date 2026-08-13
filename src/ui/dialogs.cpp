@@ -74,29 +74,26 @@ class ResultPopup : public Gtk::Window {
 void ask_autoheal(Gtk::Window& parent, const std::string& issue_summary,
                   std::function<void(bool accepted)> on_answer) {
   Logger::instance().event("ui", "Prompting autoheal + optimize");
-  auto dialog = Gtk::AlertDialog::create("Auto-heal and optimize performance?");
-  dialog->set_detail(
+
+  // Gtk::AlertDialog needs GTK ≥ 4.10; Debian 12 / BOSS ships 4.8 → MessageDialog
+  auto* dialog = new Gtk::MessageDialog(
+      parent, "Auto-heal and optimize performance?", false, Gtk::MessageType::QUESTION,
+      Gtk::ButtonsType::YES_NO, true);
+  dialog->set_secondary_text(
       "BOSS-Sentinel detected system pressure:\n\n" + issue_summary +
       "\n\nYes — auto-heal issues and run performance optimization.\n"
       "No — keep monitoring only.");
+  dialog->set_default_response(Gtk::ResponseType::YES);
   dialog->set_modal(true);
-  dialog->set_buttons({"No", "Yes"});
-  dialog->set_cancel_button(0);
-  dialog->set_default_button(1);
 
-  dialog->choose(parent, [dialog, on_answer](const Glib::RefPtr<Gio::AsyncResult>& result) {
-    int idx = -1;
-    try {
-      idx = dialog->choose_finish(result);
-    } catch (const Glib::Error& e) {
-      Logger::instance().warn(std::string("Autoheal dialog cancelled: ") + e.what());
-      if (on_answer) on_answer(false);
-      return;
-    }
-    const bool yes = (idx == 1);
+  dialog->signal_response().connect([dialog, on_answer](int response) {
+    const bool yes = (response == Gtk::ResponseType::YES);
     Logger::instance().event("ui", yes ? "User accepted autoheal" : "User declined autoheal");
+    dialog->hide();
+    delete dialog;
     if (on_answer) on_answer(yes);
   });
+  dialog->present();
 }
 
 void show_optimize_result(Gtk::Window& parent, const std::string& summary, int autoclose_ms) {
