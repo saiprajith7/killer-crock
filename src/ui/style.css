@@ -1,184 +1,357 @@
-/* BOSS-Sentinel — deep teal / aqua industrial look */
-@import url("file:///usr/share/fonts/");
+/* BOSS-Sentinel — slate + trust blue (matches prior product look) */
 
-window.boss-window {
-  background: linear-gradient(160deg, #07151c 0%, #0d2a33 45%, #123a40 100%);
-  color: #e7f6f3;
-  font-family: "Hack", "JetBrains Mono", "Fira Code", "Source Code Pro", monospace;
+@define-color canvas #f1f5f9;
+@define-color surface #ffffff;
+@define-color ink #0f172a;
+@define-color mist #334155;
+@define-color mute #64748b;
+@define-color blue #2563eb;
+@define-color blue-soft #dbeafe;
+@define-color blue-deep #1e40af;
+@define-color accent #0f766e;
+@define-color accent-soft #ccfbf1;
+@define-color accent-deep #115e59;
+@define-color ok #059669;
+@define-color amber #d97706;
+@define-color fault #dc2626;
+
+* {
+  font-family: "JetBrains Mono", "Fira Code", "Hack", "IBM Plex Mono", monospace;
+  color: @mist;
 }
 
-.hero {
-  background: linear-gradient(120deg, rgba(20, 80, 90, 0.35), rgba(8, 30, 40, 0.1));
-  border-radius: 18px;
-  padding: 8px 4px 4px 4px;
-  animation: fade-in 600ms ease-out;
+window.boss-window {
+  background-color: @canvas;
+}
+
+.topbar {
+  background: transparent;
+  padding: 12px 20px 4px 20px;
 }
 
 .brand {
-  font-size: 34px;
   font-weight: 800;
-  letter-spacing: 3.5px;
-  color: #5eead4;
-  text-shadow: 0 0 24px rgba(94, 234, 212, 0.25);
+  font-size: 20px;
+  letter-spacing: 3px;
+  color: @blue-deep;
+}
+
+.brand-sub {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: @mute;
 }
 
 .brand-sm {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 2px;
-  color: #5eead4;
+  color: @blue-deep;
 }
 
-.tagline {
-  font-size: 13px;
-  color: #9fc4bf;
+.autoheal-wrap {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.12);
+  border-radius: 4px;
+  padding: 6px 10px;
 }
 
-.muted {
-  color: #8fb3ad;
-  font-size: 12px;
-}
-
-.score-strip {
-  padding: 10px 14px;
-  border-radius: 14px;
-  background: rgba(6, 24, 30, 0.65);
-}
-
-.score {
-  font-size: 18px;
-  font-weight: 700;
-  min-width: 96px;
-}
-
-.score-bar trough {
-  min-height: 10px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.score-bar progress {
-  border-radius: 8px;
-  background: linear-gradient(90deg, #14b8a6, #5eead4);
-}
-
-.status-pill {
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 12px;
+.autoheal-label {
+  font-size: 11px;
   letter-spacing: 1px;
+  font-weight: 700;
+  color: @mute;
 }
 
-.sev-ok {
-  background: rgba(16, 185, 129, 0.2);
-  color: #6ee7b7;
+.autoheal-on { color: @ok; }
+.autoheal-off { color: @mute; }
+
+.status-strip {
+  padding: 4px 20px 0 20px;
 }
 
-.sev-warn {
-  background: rgba(245, 158, 11, 0.22);
-  color: #fcd34d;
+.hero-status {
+  font-size: 13px;
+  letter-spacing: 2px;
+  font-weight: 800;
+  color: @ok;
+}
+.hero-status.warn { color: @amber; }
+.hero-status.crit { color: @fault; }
+
+.hero-line {
+  font-size: 12px;
+  color: @mute;
 }
 
-.sev-crit {
-  background: rgba(239, 68, 68, 0.22);
-  color: #fca5a5;
+.metric-row {
+  padding: 8px 20px;
 }
 
 .metric-chip {
-  background: rgba(10, 40, 48, 0.8);
-  border: 1px solid rgba(94, 234, 212, 0.18);
-  border-radius: 14px;
-  padding: 14px 16px;
-  font-size: 13px;
-  font-weight: 600;
-  transition: background 220ms ease, border-color 220ms ease;
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.08);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-right: 8px;
 }
 
-.metric-chip:hover {
-  background: rgba(18, 60, 70, 0.9);
-  border-color: rgba(94, 234, 212, 0.45);
-}
-
-.main-tabs {
-  background: rgba(5, 18, 24, 0.55);
-  border-radius: 16px;
-  padding: 6px;
-}
-
-.main-tabs tab {
-  padding: 8px 14px;
-  border-radius: 10px;
-  color: #9fc4bf;
-  transition: background 180ms ease, color 180ms ease;
-}
-
-.main-tabs tab:checked {
-  background: rgba(94, 234, 212, 0.16);
-  color: #5eead4;
+.metric-title {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: @mute;
   font-weight: 700;
 }
 
-.issues {
-  font-size: 14px;
-  line-height: 1.45;
+.metric-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: @ink;
+}
+
+.tab-bar {
+  padding: 8px 16px 4px 16px;
+}
+
+.tab-switcher {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.08);
+  border-radius: 6px;
+  padding: 4px;
+}
+
+.tab-switcher > button {
+  background: transparent;
+  color: @mute;
+  border: none;
+  border-radius: 4px;
+  letter-spacing: 1px;
+  font-size: 11px;
+  padding: 8px 12px;
+  min-height: 28px;
+}
+
+.tab-switcher > button:checked {
+  background: @blue;
+  color: white;
+}
+
+.tab-switcher > button:hover {
+  background: @blue-soft;
+  color: @blue-deep;
+}
+
+.tab-page {
+  background: transparent;
+  padding: 8px 12px 16px 12px;
+}
+
+.section-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 800;
+  color: @blue-deep;
+  margin: 8px 0 6px 0;
+}
+
+.device-cell {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.08);
+  border-radius: 6px;
+  margin: 4px;
+  padding: 2px;
+}
+
+.stat-tile {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.08);
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin-right: 8px;
+}
+
+.stat-title {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: @mute;
+}
+
+.stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: @blue-deep;
+}
+
+.stat-detail {
+  font-size: 11px;
+  color: @mute;
+}
+
+.model-line {
+  font-size: 12px;
+  color: @mist;
+  padding: 4px 2px 8px 2px;
+}
+
+.core-row { padding: 3px 0; }
+.core-label { font-size: 11px; color: @mute; min-width: 48px; }
+.core-val { font-size: 11px; color: @blue-deep; min-width: 40px; }
+
+levelbar.core-bar trough {
+  background: @blue-soft;
+  border-radius: 2px;
+  min-height: 8px;
+}
+levelbar.core-bar block {
+  background: @blue;
+  border-radius: 2px;
+  min-height: 8px;
+}
+levelbar.core-bar.core-warn block { background: @amber; }
+levelbar.core-bar.core-crit block { background: @fault; }
+
+.list-frame {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.08);
+  border-radius: 6px;
+  padding: 4px 0;
+}
+
+.app-header {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.1);
+  border-radius: 6px 6px 0 0;
+  padding: 8px 10px;
+}
+.app-header label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: @mute;
+}
+.app-grid {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.08);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+}
+.app-row {
+  padding: 8px 10px;
+  border-bottom: 1px solid alpha(@ink, 0.06);
+}
+.app-row-title {
+  font-weight: 700;
+  color: @ink;
+  font-size: 12px;
+}
+.app-row-cell {
+  font-size: 11px;
+  color: @mist;
+}
+
+.badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: @accent-soft;
+  color: @accent-deep;
+}
+.badge-bg {
+  background: alpha(@amber, 0.15);
+  color: @amber;
+}
+.badge-off {
+  background: alpha(@mute, 0.12);
+  color: @mute;
+}
+
+.optimize-card {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+}
+.optimize-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: @ink;
+}
+.optimize-body {
+  font-size: 12px;
+  color: @mist;
+}
+
+button.opt-yes, button.cta-primary {
+  background: @blue;
+  color: white;
+  font-weight: 800;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  letter-spacing: 1px;
+}
+button.opt-yes:hover, button.cta-primary:hover {
+  background: @blue-deep;
+}
+button.opt-no, button.cta-ghost {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.15);
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 6px;
+  color: @blue-deep;
+}
+button.opt-no:hover, button.cta-ghost:hover {
+  background: @blue-soft;
+}
+
+button.cta-danger {
+  background: @surface;
+  color: @fault;
+  border: 1px solid alpha(@fault, 0.4);
+  border-radius: 4px;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  font-size: 11px;
+}
+button.cta-danger:hover {
+  background: @fault;
+  color: white;
+}
+
+.issue-inline {
+  padding: 8px 4px;
+  border-bottom: 1px solid alpha(@ink, 0.08);
+}
+
+.footer-meta {
+  padding: 6px 20px 12px 20px;
+  font-size: 11px;
+  color: @mute;
 }
 
 .mono-pane {
-  font-family: "Hack", "JetBrains Mono", "Fira Code", monospace;
+  font-family: "JetBrains Mono", "Fira Code", "Hack", monospace;
   font-size: 12px;
-  background: rgba(4, 14, 18, 0.7);
-  color: #d7eeea;
+  background: @surface;
+  color: @ink;
   padding: 10px;
 }
 
-.accent-btn {
-  background: linear-gradient(120deg, #0d9488, #14b8a6);
-  color: #042f2e;
-  font-weight: 700;
-  border-radius: 10px;
-  padding: 8px 16px;
-  border: none;
-  transition: transform 160ms ease, filter 160ms ease;
-}
-
-.accent-btn:hover {
-  filter: brightness(1.08);
-}
-
-.ghost-btn {
-  background: transparent;
-  color: #9fc4bf;
-  border: 1px solid rgba(159, 196, 191, 0.35);
-  border-radius: 10px;
-  padding: 8px 14px;
-}
-
-.ghost-btn:hover {
-  border-color: #5eead4;
-  color: #5eead4;
-}
-
-result-popup,
-.window.result-popup,
-window.result-popup {
-  background: linear-gradient(160deg, #0a2229, #123840);
-  color: #e7f6f3;
-  border-radius: 16px;
-}
-
 .popup-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
-  color: #5eead4;
+  color: @blue-deep;
 }
-
 .popup-body {
   font-size: 13px;
   line-height: 1.4;
 }
+.muted { color: @mute; font-size: 12px; }
 
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+window.result-popup {
+  background: @canvas;
+  color: @ink;
 }

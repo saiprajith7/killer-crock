@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(boss-sentinel VERSION 2.0.2 LANGUAGES CXX)
+project(boss-sentinel VERSION 2.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -20,6 +20,7 @@ add_executable(boss-sentinel-bin
   src/optimize/optimizer.cpp
   src/ui/main_window.cpp
   src/ui/dialogs.cpp
+  src/ui/gauges.cpp
 )
 
 target_include_directories(boss-sentinel-bin PRIVATE

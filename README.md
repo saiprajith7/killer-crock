@@ -14,22 +14,22 @@ Unified **health monitoring**, **auto-heal**, and **performance optimization** i
 ## Quick install (BOSS Linux / Debian 12)
 
 ```bash
-curl -L -o boss-sentinel_2.0.2-1_amd64.deb \
-  https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/boss-sentinel-cpp-unified-02f6/releases/boss-sentinel_2.0.2-1_amd64.deb
+curl -L -o boss-sentinel_2.1.0-1_amd64.deb \
+  https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/boss-sentinel-cpp-unified-02f6/releases/boss-sentinel_2.1.0-1_amd64.deb
 
-# gtkmm deps (use dpkg if DebVerify blocks apt)
 sudo dpkg -i /var/cache/apt/archives/libsigc++-3.0-0_*.deb \
              /var/cache/apt/archives/libcairomm-1.16-1_*.deb \
              /var/cache/apt/archives/libpangomm-2.48-1_*.deb \
              /var/cache/apt/archives/libglibmm-2.68-1_*.deb \
              /var/cache/apt/archives/libgtkmm-4.0-0_*.deb 2>/dev/null || true
 
-sudo dpkg -i ./boss-sentinel_2.0.2-1_amd64.deb
+sudo dpkg -i ./boss-sentinel_2.1.0-1_amd64.deb
 boss-sentinel
 ```
 
-v2.0.2 is built on **Debian 12 (glibc 2.36)** to match BOSS Linux.
-Do not use 2.0.0/2.0.1 on BOSS — those were Ubuntu 24.04 builds and need GLIBC_2.38+.
+v2.1.0 brings back the rich Sentinel UI: live Cairo graphs, vitality ring,
+per-CPU meters, process/service tables, and Optimize Yes/No — built for
+Debian 12 / BOSS (glibc 2.36).
 
 ## Build
 

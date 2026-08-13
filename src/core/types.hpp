@@ -61,11 +61,20 @@ struct Snapshot {
   double mem_percent = 0;
   double mem_used_gb = 0;
   double mem_total_gb = 0;
+  double swap_percent = 0;
+  double swap_used_gb = 0;
+  double swap_total_gb = 0;
   double disk_percent = 0;
+  double disk_used_gb = 0;
+  double disk_total_gb = 0;
   double io_read_bps = 0;
   double io_write_bps = 0;
   double load1 = 0;
+  double load5 = 0;
+  double load15 = 0;
   int threads = 1;
+  std::string cpu_model;
+  std::vector<double> per_cpu;  // percent per logical CPU
   std::vector<Metric> metrics;
   std::vector<Issue> issues;
   std::vector<ProcessRow> processes;

@@ -1,3 +1,11 @@
+boss-sentinel (2.1.0-1) unstable; urgency=medium
+
+  * Rich UI refresh matching prior BOSS-Sentinel / BOSS-Optimize look.
+  * Live Cairo device graphs, vitality ring, breath wave, per-CPU meters.
+  * Tabs: Overview, CPU, Memory, Disk, Processes, Services, Optimize, Logs.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Thu, 13 Aug 2026 12:10:00 +0000
+
 boss-sentinel (2.0.2-1) unstable; urgency=medium
 
   * Rebuild on Debian 12 (glibc 2.36) for BOSS Linux compatibility.
