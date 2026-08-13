@@ -73,8 +73,9 @@ double MonitorEngine::sample_cpu(Snapshot& snap) {
       prev_cpu_total_[i] = cores[i].second;
     }
     have_cpu_ = true;
-    std::this_thread::sleep_for(std::chrono::milliseconds(180));
-    return sample_cpu(snap);
+    // Do NOT sleep on the GTK UI thread — timers/draw can re-enter and crash.
+    snap.per_cpu.assign(cores.size(), 0.0);
+    return 0.0;
   }
 
   snap.per_cpu.clear();

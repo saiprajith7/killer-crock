@@ -162,6 +162,81 @@ window.boss-window {
   padding: 2px;
 }
 
+.device-graph-title {
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  color: @mute;
+}
+
+.device-graph-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: @blue;
+}
+
+.device-graph.sev-ok .device-graph-value { color: @ok; }
+.device-graph.sev-warn .device-graph-value { color: @amber; }
+.device-graph.sev-crit .device-graph-value { color: @fault; }
+
+.device-graph-detail {
+  font-size: 10px;
+  color: @mute;
+}
+
+.device-graph-bar,
+.breath-bar {
+  min-height: 10px;
+}
+
+.device-graph.sev-ok levelbar block.filled,
+.hero-vitality.sev-ok {
+  color: @ok;
+}
+.device-graph.sev-warn levelbar block.filled {
+  color: @amber;
+}
+.device-graph.sev-crit levelbar block.filled {
+  color: @fault;
+}
+
+.hero-vitality {
+  background: @surface;
+  border: 2px solid @ok;
+  border-radius: 999px;
+  padding: 18px 12px;
+  min-width: 110px;
+  min-height: 110px;
+}
+.hero-vitality.sev-ok { border-color: @ok; }
+.hero-vitality.sev-warn { border-color: @amber; }
+.hero-vitality.sev-crit { border-color: @fault; }
+
+.hero-score {
+  font-size: 36px;
+  font-weight: 800;
+  color: @ink;
+}
+.hero-vitality.sev-ok .hero-score { color: @ok; }
+.hero-vitality.sev-warn .hero-score { color: @amber; }
+.hero-vitality.sev-crit .hero-score { color: @fault; }
+
+.hero-caption {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: @mute;
+}
+
+.breath-wave {
+  padding: 0 0 4px 0;
+}
+
+.breath-label {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: @mute;
+}
+
 .stat-tile {
   background: @surface;
   border: 1px solid alpha(@ink, 0.08);

@@ -3,7 +3,7 @@ Type=Application
 Name=BOSS-Sentinel
 GenericName=System Health & Performance
 Comment=Unified auto-heal and performance optimization monitor
-Exec=boss-sentinel
+Exec=env GSK_RENDERER=cairo LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe MESA_LOADER_DRIVER_OVERRIDE=swrast LIBGL_DRI3_DISABLE=1 GDK_DEBUG=gl-disable GTK_A11Y=none boss-sentinel
 Icon=org.bosssentinel.BossSentinel
 Terminal=false
 Categories=System;Monitor;

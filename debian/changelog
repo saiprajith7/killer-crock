@@ -1,3 +1,10 @@
+boss-sentinel (2.1.2-1) unstable; urgency=medium
+
+  * Fix BOSS launch segfault: remove Cairo DrawingArea custom draw (EGL/DRI2).
+  * Use LevelBar/Label gauges; stronger software-GL env; no UI-thread CPU sleep.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Thu, 13 Aug 2026 12:40:00 +0000
+
 boss-sentinel (2.1.1-1) unstable; urgency=medium
 
   * Fix launch segfault on BOSS when EGL/DRI2 fails: force GSK_RENDERER=cairo.

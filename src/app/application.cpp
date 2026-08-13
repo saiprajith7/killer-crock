@@ -16,8 +16,21 @@ void Application::on_activate() {
   Logger::instance().info("Application activate");
   auto* win = new MainWindow();
   add_window(*win);
-  win->signal_hide().connect([win]() { delete win; });
-  win->present();
+  // Defer delete so we never free the window mid-present/hide during startup failures
+  win->signal_close_request().connect(
+      [win]() {
+        win->hide();
+        Glib::signal_idle().connect_once([win]() { delete win; });
+        return true;
+      },
+      false);
+  try {
+    win->present();
+  } catch (const Glib::Error& e) {
+    Logger::instance().error(std::string("present failed: ") + e.what());
+  } catch (...) {
+    Logger::instance().error("present failed with unknown error");
+  }
 }
 
 }  // namespace boss

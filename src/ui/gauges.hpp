@@ -7,51 +7,45 @@
 
 namespace boss::ui {
 
-class DeviceGraph : public Gtk::DrawingArea {
+// Software-safe metric panel (no Cairo DrawingArea — BOSS EGL/DRI2 crashes custom draw).
+class DeviceGraph : public Gtk::Box {
  public:
   explicit DeviceGraph(const Glib::ustring& title = "DEVICE");
   void update(double value, const Glib::ustring& unit = "%", const Glib::ustring& detail = "",
               double warn = 85.0, double crit = 95.0);
+  void set_content_height(int height);
 
  private:
-  void on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height);
-  bool on_tick();
+  void apply_severity(double pct);
 
-  Glib::ustring title_;
-  double value_ = 0;
-  Glib::ustring unit_ = "%";
-  Glib::ustring detail_;
-  double warn_ = 85;
-  double crit_ = 95;
-  std::deque<double> history_;
-  double phase_ = 0;
+  Gtk::Label title_;
+  Gtk::Label value_;
+  Gtk::Label detail_;
+  Gtk::LevelBar bar_;
+  double warn_ = 85.0;
+  double crit_ = 95.0;
 };
 
-class HeroVitality : public Gtk::DrawingArea {
+class HeroVitality : public Gtk::Box {
  public:
   HeroVitality();
   void set_score(int score, const Glib::ustring& overall = "ok");
 
  private:
-  void on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height);
-  bool on_tick();
-
-  int score_ = 100;
-  Glib::ustring overall_ = "ok";
-  double phase_ = 0;
+  int score_value_ = 100;
+  Gtk::Label score_;
+  Gtk::Label caption_;
 };
 
-class BreathWave : public Gtk::DrawingArea {
+class BreathWave : public Gtk::Box {
  public:
   BreathWave();
   void push(double score);
 
  private:
-  void on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height);
-  bool on_tick();
-
+  Gtk::LevelBar bar_;
+  Gtk::Label label_;
   std::deque<double> samples_;
-  double phase_ = 0;
 };
 
 }  // namespace boss::ui

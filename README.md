@@ -14,16 +14,15 @@ Unified **health monitoring**, **auto-heal**, and **performance optimization** i
 ## Quick install (BOSS Linux / Debian 12)
 
 ```bash
-curl -L -o boss-sentinel_2.1.1-1_amd64.deb \
-  https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/boss-sentinel-cpp-unified-02f6/releases/boss-sentinel_2.1.1-1_amd64.deb
+curl -L -o boss-sentinel_2.1.2-1_amd64.deb \
+  https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/boss-sentinel-cpp-unified-02f6/releases/boss-sentinel_2.1.2-1_amd64.deb
 
-sudo dpkg -i ./boss-sentinel_2.1.1-1_amd64.deb
+sudo dpkg -i ./boss-sentinel_2.1.2-1_amd64.deb
 boss-sentinel
 ```
 
-v2.1.1 fixes the launch segfault on BOSS when EGL/DRI2 fails by forcing
-`GSK_RENDERER=cairo` (software rendering).
-
+v2.1.2 fixes the BOSS launch segfault (EGL/DRI2) by dropping Cairo custom
+DrawingArea graphs in favor of LevelBar gauges, plus stronger software-GL env.
 ## Build
 
 See [docs/BUILD.md](docs/BUILD.md). System design: [docs/SYSTEM_DESIGN.md](docs/SYSTEM_DESIGN.md).

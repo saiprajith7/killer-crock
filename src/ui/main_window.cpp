@@ -57,7 +57,8 @@ MainWindow::MainWindow() {
   load_css();
   build_ui();
   Logger::instance().info("BOSS-Sentinel rich UI started");
-  refresh();
+  // Defer first refresh until the event loop is running (avoids UI-thread sleep/reentrancy)
+  Glib::signal_idle().connect_once([this]() { refresh(); });
   Glib::signal_timeout().connect(
       [this]() {
         refresh();
