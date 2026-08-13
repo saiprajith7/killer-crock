@@ -30,7 +30,7 @@ DeviceGraph::DeviceGraph(const Glib::ustring& title)
   bar_.set_min_value(0.0);
   bar_.set_max_value(100.0);
   bar_.set_value(0.0);
-  bar_.set_mode(Gtk::LevelBarMode::CONTINUOUS);
+  bar_.set_mode(Gtk::LevelBar::Mode::CONTINUOUS);
   bar_.set_hexpand(true);
   bar_.add_css_class("device-graph-bar");
 
@@ -127,7 +127,7 @@ BreathWave::BreathWave() : Gtk::Box(Gtk::Orientation::VERTICAL, 4) {
   bar_.set_min_value(0.0);
   bar_.set_max_value(100.0);
   bar_.set_value(100.0);
-  bar_.set_mode(Gtk::LevelBarMode::CONTINUOUS);
+  bar_.set_mode(Gtk::LevelBar::Mode::CONTINUOUS);
   bar_.set_hexpand(true);
   bar_.add_css_class("breath-bar");
 
