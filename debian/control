@@ -1,0 +1,35 @@
+Source: boss-sentinel
+Section: utils
+Priority: optional
+Maintainer: BOSS-Sentinel Packagers <packagers@boss-sentinel.local>
+Build-Depends: debhelper-compat (= 13),
+               cmake,
+               pkg-config,
+               g++,
+               libgtkmm-4.0-dev,
+               libglibmm-2.68-dev,
+               libgtk-4-dev
+Standards-Version: 4.6.2
+Homepage: https://github.com/saiprajith7/killer-crock
+Rules-Requires-Root: no
+
+Package: boss-sentinel
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libgtkmm-4.0-0,
+         libglibmm-2.68-1,
+         libgtk-4-1,
+         libsigc++-3.0-0,
+         libcairomm-1.16-1,
+         libpangomm-2.48-1,
+         python3
+Recommends: pkexec | policykit-1,
+           polkitd | policykit-1,
+           power-profiles-daemon,
+           fonts-hack | fonts-jetbrains-mono | fonts-firacode,
+           systemd
+Description: BOSS-Sentinel — unified auto-heal and performance optimizer
+ C++ GTK4 monitor built for Debian 12 / BOSS Linux. Detects
+ CPU/memory/disk pressure, prompts for auto-heal, runs healing plus
+ performance optimization, logs every action, and shows what was optimized.

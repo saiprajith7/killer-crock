@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Launcher for BOSS-Sentinel (installed or local build)
+# Default UI is Python GTK3 — GTK4/C++ crashes on many BOSS VMs (EGL/DRI2).
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." 2>/dev/null && pwd)" || ROOT=""
+GTK3_UI=""
+for cand in /usr/lib/boss-sentinel/boss-sentinel-gtk3.py \
+            "$(dirname "$0")/boss-sentinel-gtk3.py" \
+            "${ROOT}/scripts/boss-sentinel-gtk3.py"; do
+  if [[ -f "$cand" ]]; then
+    GTK3_UI="$cand"
+    break
+  fi
+done
+
+export BOSS_SENTINEL_HELPER="${BOSS_SENTINEL_HELPER:-/usr/libexec/boss-sentinel/boss-sentinel-helper}"
+if [[ ! -x "$BOSS_SENTINEL_HELPER" ]]; then
+  for h in "$(dirname "$0")/boss-sentinel-helper" "${ROOT}/scripts/boss-sentinel-helper"; do
+    if [[ -x "$h" ]]; then
+      export BOSS_SENTINEL_HELPER="$h"
+      break
+    fi
+  done
+fi
+
+# Prefer GTK3 Python UI (stable on BOSS). Use BOSS_SENTINEL_UI=cpp to force C++ GTK4.
+if [[ "${BOSS_SENTINEL_UI:-gtk3}" != "cpp" && -n "$GTK3_UI" ]]; then
+  export GDK_BACKEND="${GDK_BACKEND:-x11}"
+  export LIBGL_ALWAYS_SOFTWARE=1
+  export GALLIUM_DRIVER="${GALLIUM_DRIVER:-llvmpipe}"
+  export MESA_LOADER_DRIVER_OVERRIDE="${MESA_LOADER_DRIVER_OVERRIDE:-swrast}"
+  export LIBGL_DRI3_DISABLE=1
+  export GTK_A11Y=none
+  exec python3 "$GTK3_UI" "$@"
+fi
+
+BIN=""
+for cand in /usr/lib/boss-sentinel/boss-sentinel-bin \
+            "${ROOT}/build/boss-sentinel-bin" \
+            "${ROOT}/build/Release/boss-sentinel-bin"; do
+  if [[ -x "$cand" ]]; then
+    BIN="$cand"
+    break
+  fi
+done
+if [[ -z "$BIN" ]]; then
+  echo "boss-sentinel: no UI found. Reinstall the .deb or set BOSS_SENTINEL_UI." >&2
+  exit 1
+fi
+
+LIBDIR="$(dirname "$BIN")"
+if [[ -e "$LIBDIR/libgtkmm-4.0.so.0" ]] && ! ldconfig -p 2>/dev/null | grep -q 'libgtkmm-4.0.so.0'; then
+  export LD_LIBRARY_PATH="${LIBDIR}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+fi
+
+export GSK_RENDERER=cairo
+export LIBGL_ALWAYS_SOFTWARE=1
+export GALLIUM_DRIVER=llvmpipe
+export MESA_LOADER_DRIVER_OVERRIDE=swrast
+export LIBGL_DRI3_DISABLE=1
+export GDK_DEBUG=gl-disable
+export GTK_A11Y=none
+if [[ -n "${DISPLAY:-}" ]]; then
+  export GDK_BACKEND=x11
+fi
+
+exec "$BIN" "$@"
