@@ -6,10 +6,11 @@
 
 | File | What it gives you |
 |------|-------------------|
-| **[BOSS-Sentinel-Source-Code-and-Explanation.docx](BOSS-Sentinel-Source-Code-and-Explanation.docx)** | **ALL source code + explanations** (Word / Google Docs) |
+| **[BOSS-Sentinel-Python-to-CPP-SideBySide.docx](BOSS-Sentinel-Python-to-CPP-SideBySide.docx)** | **Python↔C++ side-by-side + Python line-by-line** |
+| [BOSS-Sentinel-Source-Code-and-Explanation.docx](BOSS-Sentinel-Source-Code-and-Explanation.docx) | ALL source code + explanations (Word / Google Docs) |
 | [BOSS-Sentinel-Complete-Guide.docx](BOSS-Sentinel-Complete-Guide.docx) | Shorter technical guide (no full code dump) |
 
-Also mirrored at: `releases/BOSS-Sentinel-Source-Code-and-Explanation.docx`
+Also mirrored at: `releases/BOSS-Sentinel-Python-to-CPP-SideBySide.docx`
 
 ### Upload to Google Docs
 1. Download the `.docx`

@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
   force_safe_graphics();
 
   boss::Logger::instance().info(
-      std::string("BOSS-Sentinel 2.2.2 starting (GSK_RENDERER=") +
+      std::string("BOSS-Sentinel 2.2.4 starting (GSK_RENDERER=") +
       (std::getenv("GSK_RENDERER") ? std::getenv("GSK_RENDERER") : "?") + ")");
 
   auto app = boss::Application::create();

@@ -1,3 +1,9 @@
+boss-sentinel (2.2.5-1) unstable; urgency=medium
+
+  * Add Python-to-CPP side-by-side Word guide with full Python line-by-line notes.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Thu, 13 Aug 2026 14:10:00 +0000
+
 boss-sentinel (2.2.4-1) unstable; urgency=medium
 
   * Add BOSS-Sentinel-Source-Code-and-Explanation.docx (full source + explanations).
