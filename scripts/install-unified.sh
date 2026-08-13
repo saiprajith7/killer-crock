@@ -12,7 +12,7 @@
 set -euo pipefail
 
 BRANCH="${BOSS_SENTINEL_BRANCH:-cursor/boss-sentinel-cpp-unified-02f6}"
-DEB_NAME="${BOSS_SENTINEL_DEB_NAME:-boss-sentinel_2.1.3-1_amd64.deb}"
+DEB_NAME="${BOSS_SENTINEL_DEB_NAME:-boss-sentinel_2.1.4-1_amd64.deb}"
 DEB_URL="${BOSS_SENTINEL_DEB_URL:-https://raw.githubusercontent.com/saiprajith7/killer-crock/${BRANCH}/releases/${DEB_NAME}}"
 MIRROR_URL="${BOSS_SENTINEL_MIRROR_URL:-}"
 OUT_DIR="${BOSS_SENTINEL_OUT_DIR:-$HOME/boss-sentinel}"
@@ -89,6 +89,9 @@ install_deps() {
   log "Installing runtime dependencies via dpkg (avoids DebVerify apt hook when possible)"
   shopt -s nullglob
   local cached=(
+    /var/cache/apt/archives/python3-gi_*.deb
+    /var/cache/apt/archives/gir1.2-gtk-3.0_*.deb
+    /var/cache/apt/archives/libgtk-3-0_*.deb
     /var/cache/apt/archives/libsigc++-3.0-0_*.deb
     /var/cache/apt/archives/libcairomm-1.16-1_*.deb
     /var/cache/apt/archives/libpangomm-2.48-1_*.deb
@@ -102,7 +105,7 @@ install_deps() {
   fi
 
   local need_apt=0 pkg
-  for pkg in libsigc++-3.0-0 libcairomm-1.16-1 libpangomm-2.48-1 libglibmm-2.68-1 libgtkmm-4.0-0; do
+  for pkg in python3-gi gir1.2-gtk-3.0 libgtk-3-0; do
     dpkg -s "$pkg" >/dev/null 2>&1 || need_apt=1
   done
   if [[ "$need_apt" -eq 1 ]]; then
@@ -117,8 +120,7 @@ install_deps() {
     need_sudo apt-get install -y \
       -o APT::Get::AllowUnauthenticated=true \
       -o Acquire::AllowInsecureRepositories=true \
-      libsigc++-3.0-0 libcairomm-1.16-1 libpangomm-2.48-1 \
-      libglibmm-2.68-1 libgtkmm-4.0-0 fonts-hack python3 || true
+      python3-gi gir1.2-gtk-3.0 libgtk-3-0 python3 fonts-hack || true
     for f in /etc/apt/apt.conf.d/*.disabled-by-boss-sentinel; do
       [[ -e "$f" ]] || continue
       need_sudo mv "$f" "${f%.disabled-by-boss-sentinel}" || true

@@ -12,7 +12,7 @@ PKG="boss-sentinel_${VERSION}-1_${ARCH}"
 # Bundle gtkmm only when explicitly requested (not for Debian 12 / BOSS targets)
 BUNDLE_LIBS="${BOSS_BUNDLE_LIBS:-0}"
 
-chmod +x scripts/boss-sentinel scripts/boss-sentinel-helper scripts/install-boss-sentinel.sh scripts/install-unified.sh debian/rules || true
+chmod +x scripts/boss-sentinel scripts/boss-sentinel-helper scripts/install-boss-sentinel.sh scripts/install-unified.sh scripts/purge-boss-sentinel.sh scripts/boss-sentinel-gtk3.py debian/rules || true
 
 echo "==> Host glibc: $(ldd --version | head -1)"
 echo "==> Configuring CMake"
@@ -53,8 +53,10 @@ mkdir -p "$STAGE/DEBIAN" \
 install -m 0755 build/boss-sentinel-bin "$STAGE/usr/lib/boss-sentinel/boss-sentinel-bin"
 install -m 0755 scripts/boss-sentinel "$STAGE/usr/bin/boss-sentinel"
 install -m 0755 scripts/boss-sentinel-helper "$STAGE/usr/libexec/boss-sentinel/boss-sentinel-helper"
+install -m 0755 scripts/boss-sentinel-gtk3.py "$STAGE/usr/lib/boss-sentinel/boss-sentinel-gtk3.py"
 install -m 0755 scripts/install-unified.sh "$STAGE/usr/share/boss-sentinel/install-unified.sh"
 install -m 0755 scripts/install-boss-sentinel.sh "$STAGE/usr/share/boss-sentinel/install-boss-sentinel.sh"
+install -m 0755 scripts/purge-boss-sentinel.sh "$STAGE/usr/share/boss-sentinel/purge-boss-sentinel.sh"
 install -m 0644 src/ui/style.css "$STAGE/usr/share/boss-sentinel/style.css"
 install -m 0644 data/desktop/org.bosssentinel.BossSentinel.desktop "$STAGE/usr/share/applications/"
 install -m 0644 data/icons/org.bosssentinel.BossSentinel.svg "$STAGE/usr/share/icons/hicolor/scalable/apps/"
@@ -89,15 +91,15 @@ Section: utils
 Priority: optional
 Architecture: ${ARCH}
 Maintainer: BOSS-Sentinel Packagers <packagers@boss-sentinel.local>
-Depends: libgtkmm-4.0-0, libglibmm-2.68-1, libgtk-4-1, libsigc++-3.0-0, libcairomm-1.16-1, libpangomm-2.48-1, python3
-Recommends: pkexec | policykit-1, power-profiles-daemon, fonts-hack | fonts-jetbrains-mono
+Depends: python3, python3-gi, gir1.2-gtk-3.0, libgtk-3-0
+Recommends: pkexec | policykit-1, power-profiles-daemon, fonts-hack | fonts-jetbrains-mono, libgtkmm-4.0-0, libglibmm-2.68-1, libgtk-4-1, libsigc++-3.0-0, libcairomm-1.16-1, libpangomm-2.48-1
 Conflicts: boss-optimize, bossoptimize
 Replaces: boss-optimize, bossoptimize
 Provides: boss-optimize
 Installed-Size: ${SIZE_KB}
 Homepage: https://github.com/saiprajith7/killer-crock
 Description: BOSS-Sentinel — unified auto-heal and performance optimizer
- C++ GTK4 monitor built for Debian 12 / BOSS Linux (glibc 2.36).
+ GTK3 UI (default) plus optional C++ GTK4 binary for Debian 12 / BOSS Linux.
  Detects pressure, prompts for auto-heal, optimizes performance, and logs actions.
 EOF
 
