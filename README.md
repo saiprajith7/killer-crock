@@ -13,28 +13,17 @@ Unified **health monitoring**, **auto-heal**, and **performance optimization** i
 
 ## Quick install
 
-The GitHub repo is **private**, so anonymous `raw.githubusercontent.com` URLs return **404**.
-Download while logged into GitHub, or with `gh`:
-
-**Browser:** open  
-https://github.com/saiprajith7/killer-crock/blob/cursor/boss-sentinel-cpp-unified-02f6/releases/boss-sentinel_2.0.0-1_amd64.deb  
-→ **Download raw file**
-
-**CLI:**
 ```bash
-gh api -H "Accept: application/vnd.github.raw" \
-  "repos/saiprajith7/killer-crock/contents/releases/boss-sentinel_2.0.0-1_amd64.deb?ref=cursor/boss-sentinel-cpp-unified-02f6" \
-  > boss-sentinel_2.0.0-1_amd64.deb
+curl -L -o boss-sentinel_2.0.0-1_amd64.deb \
+  https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/boss-sentinel-cpp-unified-02f6/releases/boss-sentinel_2.0.0-1_amd64.deb
 
-sudo apt-get remove --purge -y boss-sentinel vitaheal boss-optimize 2>/dev/null || true
-sudo apt-get install -y ./boss-sentinel_2.0.0-1_amd64.deb
+sudo apt-get install -y libgtkmm-4.0-0 libglibmm-2.68-1 fonts-hack python3
+sudo dpkg -i ./boss-sentinel_2.0.0-1_amd64.deb
+sudo apt-get install -f -y
 boss-sentinel
 ```
 
-Or from a local clone:
-```bash
-sudo apt-get install -y ./releases/boss-sentinel_2.0.0-1_amd64.deb
-```
+On BOSS Linux, use `dpkg -i` (not `apt-get install ./…`) so DebVerify does not block the local package.
 
 ## Build
 
