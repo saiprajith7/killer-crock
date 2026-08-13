@@ -337,42 +337,186 @@ class DiskPie(_CairoArea):
 
 
 class MultiCpuGraph(_CairoArea):
-    def __init__(self) -> None:
-        super().__init__(600, 160)
-        self._cores: List[float] = []
-        self._phase = 0.0
-        GLib.timeout_add(400, self._tick)
+    """GNOME System Monitor–style history: one colored line per logical CPU."""
 
-    def update(self, cores: List[float]) -> None:
-        self._cores = [max(0.0, min(100.0, float(c))) for c in cores]
-        self.queue_draw()
+    def __init__(self, history: int = 60) -> None:
+        super().__init__(640, 240)
+        self._history_len = history
+        self._series: List[Deque[float]] = []
+        self._current: List[float] = []
 
-    def _tick(self) -> bool:
-        if not self.get_mapped():
-            return True
-        self._phase = (self._phase + 0.04) % (math.pi * 2)
+    def update(self, per_core: List[float]) -> None:
+        n = len(per_core)
+        while len(self._series) < n:
+            self._series.append(deque([0.0] * self._history_len, maxlen=self._history_len))
+        while len(self._series) > n:
+            self._series.pop()
+        self._current = [max(0.0, min(100.0, float(p))) for p in per_core]
+        for i, pct in enumerate(self._current):
+            self._series[i].append(pct)
         self.queue_draw()
-        return True
 
     def _paint(self, cr: cairo.Context, w: int, h: int) -> None:
         cr.set_source_rgb(*SURFACE)
         cr.rectangle(0, 0, w, h)
         cr.fill()
+
+        pad_l, pad_r, pad_t, pad_b = 14, 14, 36, 36
+        gw = max(1.0, w - pad_l - pad_r)
+        gh = max(1.0, h - pad_t - pad_b)
+
+        cr.set_line_width(1)
+        cr.set_source_rgba(0.15, 0.23, 0.37, 0.12)
+        for frac in (0.0, 0.25, 0.5, 0.75, 1.0):
+            y = pad_t + gh * (1.0 - frac)
+            cr.move_to(pad_l, y)
+            cr.line_to(pad_l + gw, y)
+            cr.stroke()
+
         cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
         cr.set_font_size(11)
         cr.set_source_rgb(*MUTED)
-        cr.move_to(14, 20)
-        cr.show_text("PER-CPU UTILIZATION")
-        if not self._cores:
+        cr.move_to(pad_l, 22)
+        n = len(self._current)
+        cr.show_text(f"CPU HISTORY · {n} LOGICAL CPU{'S' if n != 1 else ''} · LAST 60 SAMPLES")
+
+        if not self._series:
+            cr.move_to(pad_l, pad_t + 24)
+            cr.show_text("Waiting for per-CPU samples…")
             return
-        n = len(self._cores)
-        left, right, top, bottom = 14, w - 14, 32, h - 14
-        gap = 4
-        bar_w = max(4.0, (right - left - gap * (n - 1)) / n)
-        for i, val in enumerate(self._cores):
-            x = left + i * (bar_w + gap)
-            bh = (val / 100.0) * (bottom - top)
-            color = _color_for(val, 85, 95)
+
+        for idx, series in enumerate(self._series):
+            color = _CPU_LINE_COLORS[idx % len(_CPU_LINE_COLORS)]
+            pts = list(series)
+            if len(pts) < 2:
+                continue
+            cr.set_line_width(2.0)
             cr.set_source_rgb(*color)
-            cr.rectangle(x, bottom - bh, bar_w, bh)
+            for i, val in enumerate(pts):
+                x = pad_l + (i / (len(pts) - 1)) * gw
+                y = pad_t + (1.0 - val / 100.0) * gh
+                if i == 0:
+                    cr.move_to(x, y)
+                else:
+                    cr.line_to(x, y)
+            cr.stroke()
+
+        # Legend like GNOME System Monitor (CPU1, CPU2, …)
+        cr.set_font_size(11)
+        lx = pad_l
+        ly = h - 12
+        for idx, pct in enumerate(self._current):
+            color = _CPU_LINE_COLORS[idx % len(_CPU_LINE_COLORS)]
+            label = f"CPU{idx + 1}: {pct:.1f}%"
+            cr.set_source_rgb(*color)
+            cr.rectangle(lx, ly - 9, 10, 10)
             cr.fill()
+            cr.set_source_rgb(*MIST)
+            cr.move_to(lx + 14, ly)
+            cr.show_text(label)
+            ext = cr.text_extents(label)
+            lx += ext.width + 28
+            if lx > w - 130 and idx < len(self._current) - 1:
+                lx = pad_l
+                ly -= 16
+
+
+class CpuCoreMeter(Gtk.Box):
+    """One logical CPU meter: label, bar, percent."""
+
+    def __init__(self, index: int) -> None:
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        self.get_style_context().add_class("cpu-core-meter")
+        self.set_hexpand(True)
+        self.set_border_width(6)
+
+        head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        self._lab = Gtk.Label(label=f"CPU{index + 1}", xalign=0)
+        self._lab.get_style_context().add_class("core-label")
+        self._lab.set_hexpand(True)
+        self._val = Gtk.Label(label="0%", xalign=1)
+        self._val.get_style_context().add_class("core-val")
+        head.pack_start(self._lab, True, True, 0)
+        head.pack_start(self._val, False, False, 0)
+
+        self._bar = Gtk.ProgressBar()
+        self._bar.set_fraction(0.0)
+        self._bar.set_show_text(False)
+        self._bar.get_style_context().add_class("core-bar")
+        self.pack_start(head, False, False, 0)
+        self.pack_start(self._bar, False, False, 0)
+
+    def set_usage(self, pct: float) -> None:
+        pct = max(0.0, min(100.0, float(pct)))
+        self._bar.set_fraction(pct / 100.0)
+        self._val.set_text(f"{pct:.0f}%")
+        ctx = self.get_style_context()
+        for cls in ("core-ok", "core-warn", "core-crit"):
+            ctx.remove_class(cls)
+        if pct >= 95:
+            ctx.add_class("core-crit")
+        elif pct >= 80:
+            ctx.add_class("core-warn")
+        else:
+            ctx.add_class("core-ok")
+
+
+class PerCpuMonitor(Gtk.Box):
+    """Grid of individual logical-CPU meters (CPU1…CPUn)."""
+
+    def __init__(self, title: str = "INDIVIDUAL CPUS") -> None:
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        self.get_style_context().add_class("per-cpu-monitor")
+        self._title = Gtk.Label(label=title, xalign=0)
+        self._title.get_style_context().add_class("section-label")
+        self.pack_start(self._title, False, False, 0)
+
+        self._empty = Gtk.Label(label="Per-CPU stats unavailable on this host.", xalign=0)
+        self.pack_start(self._empty, False, False, 0)
+
+        self._flow = Gtk.FlowBox()
+        self._flow.set_selection_mode(Gtk.SelectionMode.NONE)
+        self._flow.set_homogeneous(True)
+        self._flow.set_max_children_per_line(4)
+        self._flow.set_min_children_per_line(1)
+        self._flow.set_row_spacing(8)
+        self._flow.set_column_spacing(10)
+        self._flow.set_hexpand(True)
+        self.pack_start(self._flow, False, False, 0)
+        self._meters: List[CpuCoreMeter] = []
+
+    def update(self, per_core: List[float]) -> None:
+        if not per_core:
+            self._empty.show()
+            self._flow.hide()
+            return
+        self._empty.hide()
+        self._flow.show()
+        n = len(per_core)
+        cols = 6 if n > 16 else (4 if n >= 4 else max(1, n))
+        self._flow.set_max_children_per_line(cols)
+
+        while len(self._meters) < n:
+            meter = CpuCoreMeter(len(self._meters))
+            self._meters.append(meter)
+            self._flow.add(meter)
+            meter.show_all()
+        while len(self._meters) > n:
+            meter = self._meters.pop()
+            self._flow.remove(meter)
+
+        for i, pct in enumerate(per_core):
+            self._meters[i].set_usage(pct)
+
+
+# Colors similar to GNOME System Monitor Resources (cycling).
+_CPU_LINE_COLORS: List[Tuple[float, float, float]] = [
+    (0.80, 0.00, 0.00),
+    (0.90, 0.45, 0.00),
+    (0.15, 0.39, 0.92),
+    (0.02, 0.59, 0.41),
+    (0.55, 0.25, 0.75),
+    (0.85, 0.20, 0.55),
+    (0.10, 0.55, 0.70),
+    (0.40, 0.40, 0.45),
+]

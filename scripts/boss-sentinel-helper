@@ -147,6 +147,44 @@ def purge_disk() -> int:
     return emit(True, "Disk purge complete", ", ".join(msgs))
 
 
+def apt_update() -> int:
+    env = {**os.environ, "DEBIAN_FRONTEND": "noninteractive", "LANG": "C"}
+    try:
+        proc = subprocess.run(
+            ["apt-get", "update", "-qq"],
+            capture_output=True,
+            text=True,
+            timeout=180,
+            env=env,
+        )
+        if proc.returncode == 0:
+            return emit(True, "apt-get update completed")
+        return emit(False, "apt-get update failed", (proc.stderr or proc.stdout)[:300])
+    except FileNotFoundError:
+        return emit(False, "apt-get not installed")
+    except subprocess.TimeoutExpired:
+        return emit(False, "apt-get update timed out")
+
+
+def apt_upgrade() -> int:
+    env = {**os.environ, "DEBIAN_FRONTEND": "noninteractive", "LANG": "C"}
+    try:
+        proc = subprocess.run(
+            ["apt-get", "upgrade", "-y", "-qq"],
+            capture_output=True,
+            text=True,
+            timeout=600,
+            env=env,
+        )
+        if proc.returncode == 0:
+            return emit(True, "apt-get upgrade completed")
+        return emit(False, "apt-get upgrade failed", (proc.stderr or proc.stdout)[:300])
+    except FileNotFoundError:
+        return emit(False, "apt-get not installed")
+    except subprocess.TimeoutExpired:
+        return emit(False, "apt-get upgrade timed out")
+
+
 ACTIONS = {
     "cpu_performance": cpu_performance,
     "power_performance": power_performance,
@@ -154,6 +192,8 @@ ACTIONS = {
     "drop_caches": drop_caches,
     "renice_hogs": renice_hogs,
     "purge_disk": purge_disk,
+    "apt_update": apt_update,
+    "apt_upgrade": apt_upgrade,
 }
 
 

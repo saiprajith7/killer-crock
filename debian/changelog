@@ -1,3 +1,11 @@
+boss-sentinel (2.2.1-1) unstable; urgency=medium
+
+  * Add Autoheal tab with heal log; add Updates tab (check/install apt).
+  * Logs: Trouble / Heal / Update / Full sub-tabs.
+  * CPU: GNOME System Monitor–style per-CPU history graph + individual meters.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Thu, 13 Aug 2026 13:35:00 +0000
+
 boss-sentinel (2.2.0-1) unstable; urgency=medium
 
   * Rich GTK3 UI matching confirmed Sentinel + Optimize: live graphs, disk pie,

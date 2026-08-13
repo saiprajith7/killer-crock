@@ -260,6 +260,28 @@ window.boss-sentinel-window {
   padding: 6px 20px 12px 20px;
 }
 
+.cpu-core-meter {
+  background: @surface;
+  border: 1px solid alpha(@ink, 0.08);
+  border-radius: 8px;
+  padding: 4px;
+  min-width: 120px;
+}
+.core-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: @mute;
+}
+.core-val {
+  font-size: 12px;
+  font-weight: 800;
+  color: @blue-deep;
+}
+.cpu-core-meter.core-ok .core-val { color: @ok; }
+.cpu-core-meter.core-warn .core-val { color: @amber; }
+.cpu-core-meter.core-crit .core-val { color: @fault; }
+
 .close-x {
   min-width: 34px;
   min-height: 34px;

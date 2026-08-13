@@ -32,6 +32,7 @@ from gauges_gtk3 import (  # noqa: E402
     DiskPie,
     HeroVitality,
     MultiCpuGraph,
+    PerCpuMonitor,
 )
 
 HELPER_CANDIDATES = [
@@ -290,9 +291,14 @@ class MainWindow(Gtk.Window):
         self.prompt_open = False
         self.busy = False
         self.last_prompt = 0.0
+        self.heal_events: List[Tuple[str, str, str]] = []  # clock, title, detail
+        self.trouble_events: List[Tuple[str, str, str]] = []
+        self.update_events: List[Tuple[str, str, str]] = []
+        self._upd_packages: List[dict] = []
+        self._upd_busy = False
         self._load_css()
         self._build()
-        log("BOSS-Sentinel rich GTK3 UI 2.2.0 starting")
+        log("BOSS-Sentinel rich GTK3 UI 2.2.1 starting")
         GLib.idle_add(self.refresh)
         GLib.timeout_add(int(self.settings.get("poll_ms", 2500)), self._tick)
         self.connect("destroy", Gtk.main_quit)
@@ -350,7 +356,9 @@ class MainWindow(Gtk.Window):
         self.stack.add_titled(_scroll(self._build_disk()), "disk", "Disk")
         self.stack.add_titled(self._build_processes(), "processes", "Processes")
         self.stack.add_titled(_scroll(self._build_services()), "services", "Services")
+        self.stack.add_titled(_scroll(self._build_autoheal()), "autoheal", "Autoheal")
         self.stack.add_titled(_scroll(self._build_optimize()), "optimize", "Optimize")
+        self.stack.add_titled(_scroll(self._build_updates()), "updates", "Updates")
         self.stack.add_titled(self._build_logs(), "logs", "Logs")
         root.pack_start(self.stack, True, True, 0)
 
@@ -407,18 +415,42 @@ class MainWindow(Gtk.Window):
         for b in (self.btn_on, self.btn_off):
             b.get_style_context().remove_class("on-active")
             b.get_style_context().remove_class("off-active")
+        if hasattr(self, "ah_tab_on"):
+            for b in (self.ah_tab_on, self.ah_tab_off):
+                b.get_style_context().remove_class("on-active")
+                b.get_style_context().remove_class("off-active")
         if self.autoheal:
             self.btn_on.get_style_context().add_class("on-active")
             self.auto_hint.set_text("Live — will ask before heal + optimize")
+            if hasattr(self, "ah_tab_on"):
+                self.ah_tab_on.get_style_context().add_class("on-active")
+                self.ah_tab_hint.set_text(
+                    "ON — critical issues pop up Yes/No before any heal action. "
+                    "Heal log below records every action."
+                )
+                self.ah_tab_title.set_text("Interactive autoheal is ON")
         else:
             self.btn_off.get_style_context().add_class("off-active")
             self.auto_hint.set_text("Quiet — monitoring only")
+            if hasattr(self, "ah_tab_off"):
+                self.ah_tab_off.get_style_context().add_class("off-active")
+                self.ah_tab_hint.set_text(
+                    "OFF — monitoring only. Turn ON for heal prompts, or run heal manually."
+                )
+                self.ah_tab_title.set_text("Interactive autoheal is OFF")
 
     def _set_autoheal(self, enabled: bool) -> None:
+        prev = self.autoheal
         self.autoheal = enabled
         self.settings["prompt_on_issue"] = enabled
         save_settings(self.settings)
         self._sync_autoheal_buttons()
+        if enabled != prev:
+            self._note(
+                "heal",
+                "Autoheal enabled" if enabled else "Autoheal disabled",
+                "User toggled autoheal " + ("ON" if enabled else "OFF"),
+            )
         log(f"Autoheal {'enabled' if enabled else 'disabled'}")
 
     def _build_status(self) -> Gtk.Widget:
@@ -523,20 +555,122 @@ class MainWindow(Gtk.Window):
         tiles = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         self.tile_util_b, self.tile_util, self.tile_util_d = self._stat_tile("UTILIZATION")
         self.tile_cores_b, self.tile_cores, self.tile_cores_d = self._stat_tile("CORES")
+        self.tile_threads_b, self.tile_threads, self.tile_threads_d = self._stat_tile("THREADS")
         self.tile_load_b, self.tile_load, self.tile_load_d = self._stat_tile("LOAD AVERAGE")
-        for b in (self.tile_util_b, self.tile_cores_b, self.tile_load_b):
+        for b in (self.tile_util_b, self.tile_cores_b, self.tile_threads_b, self.tile_load_b):
             tiles.pack_start(b, True, True, 0)
         page.pack_start(tiles, False, False, 0)
         self.model_line = Gtk.Label(label="", xalign=0)
         self.model_line.get_style_context().add_class("hero-line")
         page.pack_start(self.model_line, False, False, 0)
-        self.cpu_big = DeviceGraph("CPU UTILIZATION", height=180)
-        page.pack_start(self._cell(self.cpu_big), False, False, 0)
-        page.pack_start(_section("PER-CPU METERS"), False, False, 0)
+
+        # GNOME System Monitor–style per-CPU history (primary view)
+        page.pack_start(_section("CPU HISTORY"), False, False, 0)
         self.multi_cpu = MultiCpuGraph()
         page.pack_start(self._cell(self.multi_cpu), False, False, 0)
+
+        self.cpu_per_cpu = PerCpuMonitor("INDIVIDUAL CPUS")
+        page.pack_start(self.cpu_per_cpu, False, False, 0)
+
+        page.pack_start(_section("OVERALL"), False, False, 0)
+        self.cpu_big = DeviceGraph("CPU UTILIZATION", height=160)
+        page.pack_start(self._cell(self.cpu_big), False, False, 0)
         return page
 
+    def _note(self, bucket: str, title: str, detail: str = "") -> None:
+        entry = (time.strftime("%H:%M:%S"), title, detail)
+        if bucket == "heal":
+            self.heal_events.insert(0, entry)
+            self.heal_events = self.heal_events[:120]
+        elif bucket == "trouble":
+            self.trouble_events.insert(0, entry)
+            self.trouble_events = self.trouble_events[:120]
+        else:
+            self.update_events.insert(0, entry)
+            self.update_events = self.update_events[:120]
+        log(f"{bucket}: {title} — {detail}")
+        self._paint_event_logs()
+
+    def _build_autoheal(self) -> Gtk.Widget:
+        page = self._page()
+        page.pack_start(_section("AUTOHEAL CONTROL"), False, False, 0)
+        card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        card.get_style_context().add_class("autoheal-card")
+        self.ah_tab_title = Gtk.Label(label="Interactive autoheal", xalign=0)
+        self.ah_tab_hint = Gtk.Label(label="", xalign=0)
+        self.ah_tab_hint.set_line_wrap(True)
+        seg = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
+        seg.get_style_context().add_class("autoheal-seg")
+        self.ah_tab_on = Gtk.Button(label="ON")
+        self.ah_tab_off = Gtk.Button(label="OFF")
+        self.ah_tab_on.connect("clicked", lambda *_: self._set_autoheal(True))
+        self.ah_tab_off.connect("clicked", lambda *_: self._set_autoheal(False))
+        seg.pack_start(self.ah_tab_on, False, False, 0)
+        seg.pack_start(self.ah_tab_off, False, False, 0)
+        btns = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        run = Gtk.Button(label="RUN HEAL + OPTIMIZE NOW")
+        run.get_style_context().add_class("opt-yes")
+        run.connect("clicked", lambda *_: self.run_heal_and_optimize(manual=True))
+        btns.pack_start(run, False, False, 0)
+        for w in (self.ah_tab_title, self.ah_tab_hint, seg, btns):
+            card.pack_start(w, False, False, 0)
+        page.pack_start(card, False, False, 0)
+
+        page.pack_start(_section("WHAT BOSS-SENTINEL HEALED"), False, False, 0)
+        self.ah_log_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        self.ah_log_box.get_style_context().add_class("list-frame")
+        page.pack_start(self.ah_log_box, False, False, 0)
+        self._sync_autoheal_buttons()
+        return page
+
+    def _build_updates(self) -> Gtk.Widget:
+        page = self._page()
+        page.pack_start(_section("SYSTEM UPDATES"), False, False, 0)
+        tiles = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        self.upd_count_b, self.upd_count_v, self.upd_count_d = self._stat_tile("AVAILABLE")
+        self.upd_src_b, self.upd_src_v, self.upd_src_d = self._stat_tile("SOURCES")
+        tiles.pack_start(self.upd_count_b, True, True, 0)
+        tiles.pack_start(self.upd_src_b, True, True, 0)
+        page.pack_start(tiles, False, False, 0)
+
+        self.upd_summary = Gtk.Label(label="Press Check Updates to query your apt sources.", xalign=0)
+        self.upd_summary.get_style_context().add_class("hero-line")
+        self.upd_summary.set_line_wrap(True)
+        page.pack_start(self.upd_summary, False, False, 0)
+
+        btns = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        self.upd_check_btn = Gtk.Button(label="CHECK UPDATES")
+        self.upd_check_btn.get_style_context().add_class("opt-yes")
+        self.upd_check_btn.connect("clicked", lambda *_: self._start_update_check())
+        self.upd_install_btn = Gtk.Button(label="INSTALL UPDATES")
+        self.upd_install_btn.get_style_context().add_class("opt-no")
+        self.upd_install_btn.set_sensitive(False)
+        self.upd_install_btn.connect("clicked", lambda *_: self._prompt_install_updates())
+        btns.pack_start(self.upd_check_btn, False, False, 0)
+        btns.pack_start(self.upd_install_btn, False, False, 0)
+        page.pack_start(btns, False, False, 0)
+
+        page.pack_start(_section("CONFIGURED SOURCES"), False, False, 0)
+        self.upd_sources_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        self.upd_sources_box.get_style_context().add_class("list-frame")
+        page.pack_start(self.upd_sources_box, False, False, 0)
+
+        page.pack_start(_section("UPGRADABLE PACKAGES"), False, False, 0)
+        self.upd_pkg_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        self.upd_pkg_box.get_style_context().add_class("list-frame")
+        page.pack_start(self.upd_pkg_box, False, False, 0)
+
+        page.pack_start(_section("UPDATE LOG"), False, False, 0)
+        self.upd_log_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        self.upd_log_box.get_style_context().add_class("list-frame")
+        page.pack_start(self.upd_log_box, False, False, 0)
+
+        self._paint_update_sources()
+        self.upd_src_v.set_text(str(len(self._read_apt_sources())))
+        self.upd_src_d.set_text("from sources.list + sources.list.d")
+        self.upd_count_v.set_text("—")
+        self.upd_count_d.set_text("not checked yet")
+        return page
     def _build_memory(self) -> Gtk.Widget:
         page = self._page()
         tiles = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
@@ -623,16 +757,233 @@ class MainWindow(Gtk.Window):
         return page
 
     def _build_logs(self) -> Gtk.Widget:
-        page = self._page()
-        page.pack_start(_section("EVENT LOG"), False, False, 0)
+        outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        outer.set_border_width(8)
+        log_stack = Gtk.Stack()
+        log_stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+        log_stack.set_vexpand(True)
+        switcher = Gtk.StackSwitcher()
+        switcher.set_stack(log_stack)
+        switcher.get_style_context().add_class("tab-switcher")
+        switcher.set_halign(Gtk.Align.CENTER)
+        bar = Gtk.Box()
+        bar.set_halign(Gtk.Align.CENTER)
+        bar.get_style_context().add_class("tab-bar")
+        bar.pack_start(switcher, False, False, 0)
+        outer.pack_start(bar, False, False, 0)
+
+        def log_page(title: str, attr: str) -> Gtk.Widget:
+            page = self._page()
+            page.pack_start(_section(title), False, False, 0)
+            box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+            box.get_style_context().add_class("list-frame")
+            setattr(self, attr, box)
+            page.pack_start(_scroll(box), True, True, 0)
+            return page
+
+        log_stack.add_titled(log_page("WHAT'S CAUSING TROUBLE", "trouble_box"), "trouble", "Trouble Log")
+        log_stack.add_titled(log_page("WHAT BOSS-SENTINEL HEALED", "heal_box"), "heal", "Heal Log")
+        log_stack.add_titled(log_page("SYSTEM UPDATE LOG", "update_log_box"), "updates", "Update Log")
+
+        # Full file log
+        file_page = self._page()
+        file_page.pack_start(_section("EVENT LOG FILE"), False, False, 0)
         self.log_view = Gtk.TextView()
         self.log_view.set_editable(False)
         self.log_buf = self.log_view.get_buffer()
         sc = Gtk.ScrolledWindow()
         sc.set_vexpand(True)
         sc.add(self.log_view)
-        page.pack_start(sc, True, True, 0)
-        return page
+        file_page.pack_start(sc, True, True, 0)
+        log_stack.add_titled(file_page, "file", "Full Log")
+
+        outer.pack_start(log_stack, True, True, 0)
+        return outer
+
+    def _read_apt_sources(self) -> List[dict]:
+        out = []
+        files = []
+        sl = Path("/etc/apt/sources.list")
+        sd = Path("/etc/apt/sources.list.d")
+        if sl.exists():
+            files.append(sl)
+        if sd.exists():
+            files.extend(sorted(sd.glob("*.list")))
+            files.extend(sorted(sd.glob("*.sources")))
+        for path in files:
+            try:
+                text = path.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            for raw in text.splitlines():
+                line = raw.strip()
+                if not line:
+                    continue
+                if line.startswith("#"):
+                    body = line.lstrip("#").strip()
+                    if body.startswith(("deb ", "deb-src ", "Types:")):
+                        out.append({"file": path.name, "line": body, "enabled": False})
+                    continue
+                if line.startswith(("deb ", "deb-src ", "Types:", "URIs:", "Suites:")):
+                    out.append({"file": path.name, "line": line, "enabled": True})
+        return out
+
+    def _paint_update_sources(self) -> None:
+        if not hasattr(self, "upd_sources_box"):
+            return
+        self._clear(self.upd_sources_box)
+        sources = self._read_apt_sources()
+        if not sources:
+            self.upd_sources_box.pack_start(
+                Gtk.Label(label="No apt sources found under /etc/apt/.", xalign=0), False, False, 0
+            )
+        else:
+            for src in sources[:40]:
+                flag = "ON" if src["enabled"] else "OFF"
+                lab = Gtk.Label(
+                    label=f"{src['file']} [{flag}]  ·  {src['line'][:90]}", xalign=0
+                )
+                lab.set_ellipsize(Pango.EllipsizeMode.END)
+                self.upd_sources_box.pack_start(lab, False, False, 0)
+        self.upd_sources_box.show_all()
+
+    def _paint_update_packages(self) -> None:
+        if not hasattr(self, "upd_pkg_box"):
+            return
+        self._clear(self.upd_pkg_box)
+        if not self._upd_packages:
+            self.upd_pkg_box.pack_start(
+                Gtk.Label(label="No upgradable packages (run Check Updates).", xalign=0),
+                False,
+                False,
+                0,
+            )
+        else:
+            for pkg in self._upd_packages[:80]:
+                lab = Gtk.Label(
+                    label=f"{pkg['name']}  ·  {pkg['current']} → {pkg['candidate']}", xalign=0
+                )
+                self.upd_pkg_box.pack_start(lab, False, False, 0)
+        self.upd_pkg_box.show_all()
+
+    def _paint_event_logs(self) -> None:
+        def fill(box_name: str, events: List[Tuple[str, str, str]], empty: str) -> None:
+            if not hasattr(self, box_name):
+                return
+            box = getattr(self, box_name)
+            self._clear(box)
+            if not events:
+                box.pack_start(Gtk.Label(label=empty, xalign=0), False, False, 0)
+            else:
+                for clock, title, detail in events[:80]:
+                    lab = Gtk.Label(label=f"{clock}  ·  {title}  —  {detail}"[:140], xalign=0)
+                    lab.set_ellipsize(Pango.EllipsizeMode.END)
+                    box.pack_start(lab, False, False, 0)
+            box.show_all()
+
+        fill("ah_log_box", self.heal_events, "No heal actions yet.")
+        fill("heal_box", self.heal_events, "No heal actions yet.")
+        fill("trouble_box", self.trouble_events, "No trouble events yet.")
+        fill("update_log_box", self.update_events, "No system update activity yet.")
+        fill("upd_log_box", self.update_events, "No system update activity yet.")
+
+    def _start_update_check(self) -> None:
+        if self._upd_busy:
+            return
+        import threading
+
+        self._upd_busy = True
+        self.upd_check_btn.set_sensitive(False)
+        self.upd_install_btn.set_sensitive(False)
+        self.upd_summary.set_text("Checking apt sources…")
+        self._note("update", "Checking for updates", "Reading sources and simulating upgrade")
+
+        def work() -> None:
+            # Refresh indexes via pkexec helper when available
+            run_helper("apt_update")
+            pkgs: List[dict] = []
+            err = ""
+            try:
+                env = {**os.environ, "DEBIAN_FRONTEND": "noninteractive", "LANG": "C"}
+                proc = subprocess.run(
+                    ["apt-get", "-s", "-o", "Debug::NoLocking=1", "upgrade"],
+                    capture_output=True,
+                    text=True,
+                    timeout=120,
+                    env=env,
+                )
+                import re
+
+                inst_re = re.compile(r"^Inst\s+(\S+)\s+(?:\[([^\]]*)\]\s+)?\(([^ )]+)")
+                for line in (proc.stdout or "").splitlines():
+                    m = inst_re.match(line.strip())
+                    if m:
+                        pkgs.append(
+                            {
+                                "name": m.group(1),
+                                "current": m.group(2) or "?",
+                                "candidate": m.group(3),
+                            }
+                        )
+                if proc.returncode != 0 and not pkgs:
+                    err = (proc.stderr or proc.stdout or "apt-get simulate failed")[:200]
+            except Exception as exc:  # noqa: BLE001
+                err = str(exc)
+            GLib.idle_add(self._finish_update_check, pkgs, err)
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def _finish_update_check(self, pkgs: List[dict], err: str) -> bool:
+        self._upd_busy = False
+        self.upd_check_btn.set_sensitive(True)
+        self._upd_packages = pkgs
+        sources = self._read_apt_sources()
+        self.upd_src_v.set_text(str(len(sources)))
+        self.upd_src_d.set_text("from sources.list + sources.list.d")
+        self.upd_count_v.set_text(str(len(pkgs)))
+        self.upd_count_d.set_text("upgradable packages")
+        self.upd_install_btn.set_sensitive(len(pkgs) > 0)
+        if err and not pkgs:
+            self.upd_summary.set_text(f"Check finished with error: {err}")
+            self._note("update", "Update check error", err)
+        elif pkgs:
+            names = ", ".join(p["name"] for p in pkgs[:12])
+            more = f" (+{len(pkgs) - 12} more)" if len(pkgs) > 12 else ""
+            self.upd_summary.set_text(f"{len(pkgs)} update(s) available: {names}{more}")
+            self._note("update", f"Update check complete — {len(pkgs)} available", names[:120])
+        else:
+            self.upd_summary.set_text("System is up to date.")
+            self._note("update", "Update check complete — 0 available", "System is up to date")
+        self._paint_update_sources()
+        self._paint_update_packages()
+        return False
+
+    def _prompt_install_updates(self) -> None:
+        if not self._upd_packages:
+            return
+        dlg = Gtk.MessageDialog(
+            transient_for=self,
+            flags=0,
+            message_type=Gtk.MessageType.QUESTION,
+            buttons=Gtk.ButtonsType.YES_NO,
+            text=f"Install {len(self._upd_packages)} update(s)?",
+        )
+        dlg.format_secondary_text(
+            "This runs apt-get upgrade via pkexec (password may be required).\n"
+            + ", ".join(p["name"] for p in self._upd_packages[:20])
+        )
+        resp = dlg.run()
+        dlg.destroy()
+        if resp != Gtk.ResponseType.YES:
+            self._note("update", "Updates declined", "User chose No")
+            return
+        self._note("update", "Installing updates", f"{len(self._upd_packages)} packages")
+        res = run_helper("apt_upgrade")
+        ok = bool(res.get("ok"))
+        msg = res.get("message", "?")
+        self._note("update", "apt-get upgrade", msg)
+        self.upd_summary.set_text(("Installed: " if ok else "Failed: ") + msg)
+        self._start_update_check()
 
     def _tick(self) -> bool:
         self.refresh()
@@ -685,10 +1036,14 @@ class MainWindow(Gtk.Window):
 
             self.cpu_big.update(cpu, "%", "live utilization")
             self.multi_cpu.update(per_cpu)
+            self.cpu_per_cpu.update(per_cpu)
             self.tile_util.set_text(f"{cpu:.0f}%")
             self.tile_util_d.set_text("overall")
-            self.tile_cores.set_text(str(len(per_cpu) or 1))
-            self.tile_cores_d.set_text("logical")
+            ncpu = len(per_cpu) or 1
+            self.tile_cores.set_text(str(ncpu))
+            self.tile_cores_d.set_text("logical CPUs")
+            self.tile_threads.set_text(str(ncpu))
+            self.tile_threads_d.set_text("hardware threads")
             self.tile_load.set_text(loadavg())
             self.tile_load_d.set_text("1 / 5 / 15")
             self.model_line.set_text(model)
@@ -711,9 +1066,19 @@ class MainWindow(Gtk.Window):
             self._paint_services()
             self._reload_log()
             self.footer.set_text(
-                f"BOSS-Sentinel 2.2.0 · CPU {cpu:.0f}% · RAM {mem:.0f}% · DISK {disk:.0f}% · refreshed"
+                f"BOSS-Sentinel 2.2.1 · CPU {cpu:.0f}% · RAM {mem:.0f}% · DISK {disk:.0f}% · refreshed"
             )
             log(f"Snapshot score={score} cpu={cpu:.0f} mem={mem:.0f}")
+            if issues:
+                # Record new trouble only when severity changes set
+                key = "|".join(f"{n}:{s}:{v:.0f}" for n, s, v, u in issues)
+                if getattr(self, "_last_issue_key", "") != key:
+                    self._last_issue_key = key
+                    self._note(
+                        "trouble",
+                        f"{len(issues)} issue(s) detected",
+                        ", ".join(f"{n} {v:.0f}{u}" for n, s, v, u in issues),
+                    )
             self._maybe_prompt(overall, issues)
         except Exception as exc:  # noqa: BLE001
             log(f"refresh error: {exc}")
@@ -802,14 +1167,15 @@ class MainWindow(Gtk.Window):
         if self.busy:
             return
         self.busy = True
-        actions = ["drop_caches", "trim_journals", "cpu_performance", "io_boost", "power_performance"]
+        actions = ["drop_caches", "purge_disk", "cpu_performance", "io_boost", "power_performance"]
         lines = []
+        self._note("heal", "Heal + optimize started", "manual" if manual else "autoheal prompt")
         for act in actions:
             res = run_helper(act)
             ok = bool(res.get("ok"))
             msg = res.get("message", "?")
             lines.append(f"{'✓' if ok else '✗'} {act}: {msg}")
-            log(f"action {act} → {msg}")
+            self._note("heal", act, msg)
         self.busy = False
         text = "\n".join(lines)
         self.opt_result.set_text(text)
@@ -824,7 +1190,7 @@ class MainWindow(Gtk.Window):
         dlg.run()
         dlg.destroy()
         self._reload_log()
-
+        self._paint_event_logs()
 
 def main() -> int:
     os.environ.setdefault("GDK_BACKEND", "x11")

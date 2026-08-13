@@ -18,8 +18,7 @@ curl -fsSL https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/bos
 boss-sentinel
 ```
 
-**v2.2.0** restores the confirmed rich UI on stable GTK3:
-Overview / CPU / Memory / Disk (pie chart) / Processes / Services / Optimize / Logs,
-live Cairo graphs, vitality ring, and an ON/OFF autoheal control.
+**v2.2.1** adds Autoheal tab + heal log, Updates tab, Logs sub-tabs
+(Trouble / Heal / Update), and GNOME-style per-CPU history graph.
 
-Package: `releases/boss-sentinel_2.2.0-1_amd64.deb`
+Package: `releases/boss-sentinel_2.2.1-1_amd64.deb`
