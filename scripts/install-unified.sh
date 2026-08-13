@@ -12,7 +12,7 @@
 set -euo pipefail
 
 BRANCH="${BOSS_SENTINEL_BRANCH:-cursor/boss-sentinel-cpp-unified-02f6}"
-DEB_NAME="${BOSS_SENTINEL_DEB_NAME:-boss-sentinel_2.1.4-1_amd64.deb}"
+DEB_NAME="${BOSS_SENTINEL_DEB_NAME:-boss-sentinel_2.2.0-1_amd64.deb}"
 DEB_URL="${BOSS_SENTINEL_DEB_URL:-https://raw.githubusercontent.com/saiprajith7/killer-crock/${BRANCH}/releases/${DEB_NAME}}"
 MIRROR_URL="${BOSS_SENTINEL_MIRROR_URL:-}"
 OUT_DIR="${BOSS_SENTINEL_OUT_DIR:-$HOME/boss-sentinel}"
@@ -105,7 +105,7 @@ install_deps() {
   fi
 
   local need_apt=0 pkg
-  for pkg in python3-gi gir1.2-gtk-3.0 libgtk-3-0; do
+  for pkg in python3-gi python3-cairo gir1.2-gtk-3.0 libgtk-3-0; do
     dpkg -s "$pkg" >/dev/null 2>&1 || need_apt=1
   done
   if [[ "$need_apt" -eq 1 ]]; then
@@ -120,7 +120,7 @@ install_deps() {
     need_sudo apt-get install -y \
       -o APT::Get::AllowUnauthenticated=true \
       -o Acquire::AllowInsecureRepositories=true \
-      python3-gi gir1.2-gtk-3.0 libgtk-3-0 python3 fonts-hack || true
+      python3-gi python3-cairo gir1.2-gtk-3.0 libgtk-3-0 python3 fonts-hack || true
     for f in /etc/apt/apt.conf.d/*.disabled-by-boss-sentinel; do
       [[ -e "$f" ]] || continue
       need_sudo mv "$f" "${f%.disabled-by-boss-sentinel}" || true

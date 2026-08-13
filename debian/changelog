@@ -1,3 +1,11 @@
+boss-sentinel (2.2.0-1) unstable; urgency=medium
+
+  * Rich GTK3 UI matching confirmed Sentinel + Optimize: live graphs, disk pie,
+    vitality ring, tabs (Overview/CPU/Memory/Disk/Processes/Services/Optimize/Logs).
+  * Attractive autoheal ON/OFF segmented control (replaces plain switch).
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Thu, 13 Aug 2026 13:20:00 +0000
+
 boss-sentinel (2.1.4-1) unstable; urgency=medium
 
   * Default to Python GTK3 UI (avoids GTK4 EGL/DRI2 segfaults on BOSS).

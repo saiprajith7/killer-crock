@@ -54,6 +54,8 @@ install -m 0755 build/boss-sentinel-bin "$STAGE/usr/lib/boss-sentinel/boss-senti
 install -m 0755 scripts/boss-sentinel "$STAGE/usr/bin/boss-sentinel"
 install -m 0755 scripts/boss-sentinel-helper "$STAGE/usr/libexec/boss-sentinel/boss-sentinel-helper"
 install -m 0755 scripts/boss-sentinel-gtk3.py "$STAGE/usr/lib/boss-sentinel/boss-sentinel-gtk3.py"
+install -m 0644 scripts/gauges_gtk3.py "$STAGE/usr/lib/boss-sentinel/gauges_gtk3.py"
+install -m 0644 scripts/style-gtk3.css "$STAGE/usr/share/boss-sentinel/style-gtk3.css"
 install -m 0755 scripts/install-unified.sh "$STAGE/usr/share/boss-sentinel/install-unified.sh"
 install -m 0755 scripts/install-boss-sentinel.sh "$STAGE/usr/share/boss-sentinel/install-boss-sentinel.sh"
 install -m 0755 scripts/purge-boss-sentinel.sh "$STAGE/usr/share/boss-sentinel/purge-boss-sentinel.sh"
@@ -91,7 +93,7 @@ Section: utils
 Priority: optional
 Architecture: ${ARCH}
 Maintainer: BOSS-Sentinel Packagers <packagers@boss-sentinel.local>
-Depends: python3, python3-gi, gir1.2-gtk-3.0, libgtk-3-0
+Depends: python3, python3-gi, python3-cairo, gir1.2-gtk-3.0, libgtk-3-0
 Recommends: pkexec | policykit-1, power-profiles-daemon, fonts-hack | fonts-jetbrains-mono, libgtkmm-4.0-0, libglibmm-2.68-1, libgtk-4-1, libsigc++-3.0-0, libcairomm-1.16-1, libpangomm-2.48-1
 Conflicts: boss-optimize, bossoptimize
 Replaces: boss-optimize, bossoptimize
