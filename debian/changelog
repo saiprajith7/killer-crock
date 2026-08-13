@@ -1,3 +1,11 @@
+boss-sentinel (2.0.1-1) unstable; urgency=medium
+
+  * Bundle gtkmm/glibmm runtime libs for BOSS DebVerify offline installs.
+  * Soften package Depends to libgtk-4-1 + python3.
+  * Add scripts/install-boss-sentinel.sh helper.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Thu, 13 Aug 2026 11:55:00 +0000
+
 boss-sentinel (2.0.0-1) unstable; urgency=medium
 
   * Initial C++ unified BOSS-Sentinel release.

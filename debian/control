@@ -17,6 +17,7 @@ Package: boss-sentinel
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
+         libgtk-4-1,
          python3
 Recommends: pkexec | policykit-1,
            polkitd | policykit-1,
@@ -26,4 +27,6 @@ Recommends: pkexec | policykit-1,
 Description: BOSS-Sentinel — unified auto-heal and performance optimizer
  C++ GTK4 monitor that detects CPU/memory/disk pressure, prompts for
  auto-heal, runs healing plus performance optimization, logs every
- action, and shows what was optimized.
+ action, and shows what was optimized. Bundles gtkmm runtime libraries
+ for DebVerify-constrained BOSS Linux installs.
+

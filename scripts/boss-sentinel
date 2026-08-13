@@ -14,5 +14,12 @@ if [[ -z "$BIN" ]]; then
   echo "boss-sentinel: binary not found. Build with cmake or install the .deb." >&2
   exit 1
 fi
+
+# Prefer bundled gtkmm/glibmm when present (BOSS DebVerify / offline installs)
+LIBDIR="$(dirname "$BIN")"
+if [[ -d "$LIBDIR" ]]; then
+  export LD_LIBRARY_PATH="${LIBDIR}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+fi
+
 export BOSS_SENTINEL_HELPER="${BOSS_SENTINEL_HELPER:-/usr/libexec/boss-sentinel/boss-sentinel-helper}"
 exec "$BIN" "$@"

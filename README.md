@@ -14,16 +14,26 @@ Unified **health monitoring**, **auto-heal**, and **performance optimization** i
 ## Quick install
 
 ```bash
-curl -L -o boss-sentinel_2.0.0-1_amd64.deb \
-  https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/boss-sentinel-cpp-unified-02f6/releases/boss-sentinel_2.0.0-1_amd64.deb
+curl -L -o boss-sentinel_2.0.1-1_amd64.deb \
+  https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/boss-sentinel-cpp-unified-02f6/releases/boss-sentinel_2.0.1-1_amd64.deb
 
-sudo apt-get install -y libgtkmm-4.0-0 libglibmm-2.68-1 fonts-hack python3
-sudo dpkg -i ./boss-sentinel_2.0.0-1_amd64.deb
-sudo apt-get install -f -y
+sudo dpkg -i ./boss-sentinel_2.0.1-1_amd64.deb
 boss-sentinel
 ```
 
-On BOSS Linux, use `dpkg -i` (not `apt-get install ./…`) so DebVerify does not block the local package.
+On BOSS Linux, prefer `dpkg -i` (DebVerify often blocks `apt-get install ./…`).
+v2.0.1 bundles gtkmm libraries so a DebVerify outage does not block launch.
+
+If an older install left broken deps, fix the cache packages first:
+
+```bash
+sudo dpkg -i /var/cache/apt/archives/libsigc++-3.0-0_*.deb \
+             /var/cache/apt/archives/libcairomm-1.16-1_*.deb \
+             /var/cache/apt/archives/libpangomm-2.48-1_*.deb \
+             /var/cache/apt/archives/libglibmm-2.68-1_*.deb \
+             /var/cache/apt/archives/libgtkmm-4.0-0_*.deb
+sudo dpkg --configure -a
+```
 
 ## Build
 
