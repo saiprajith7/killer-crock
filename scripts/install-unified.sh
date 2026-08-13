@@ -12,7 +12,7 @@
 set -euo pipefail
 
 BRANCH="${BOSS_SENTINEL_BRANCH:-cursor/boss-sentinel-cpp-unified-02f6}"
-DEB_NAME="${BOSS_SENTINEL_DEB_NAME:-boss-sentinel_2.2.1-1_amd64.deb}"
+DEB_NAME="${BOSS_SENTINEL_DEB_NAME:-boss-sentinel_2.2.2-1_amd64.deb}"
 DEB_URL="${BOSS_SENTINEL_DEB_URL:-https://raw.githubusercontent.com/saiprajith7/killer-crock/${BRANCH}/releases/${DEB_NAME}}"
 MIRROR_URL="${BOSS_SENTINEL_MIRROR_URL:-}"
 OUT_DIR="${BOSS_SENTINEL_OUT_DIR:-$HOME/boss-sentinel}"

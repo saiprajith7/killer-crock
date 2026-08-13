@@ -1,3 +1,10 @@
+boss-sentinel (2.2.2-1) unstable; urgency=medium
+
+  * Ship full documentation set: FILE_STRUCTURE, SYSTEM_DESIGN, USER_GUIDE,
+    CODE_WALKTHROUGH, DOCUMENTATION_INDEX under /usr/share/doc/boss-sentinel.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Thu, 13 Aug 2026 13:55:00 +0000
+
 boss-sentinel (2.2.1-1) unstable; urgency=medium
 
   * Add Autoheal tab with heal log; add Updates tab (check/install apt).

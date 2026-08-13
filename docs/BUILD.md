@@ -2,10 +2,9 @@
 
 ## Target platform
 
-BOSS Linux is based on **Debian 12 (bookworm)** with **glibc 2.36**.
+BOSS Linux ≈ **Debian 12 (bookworm)** with **glibc 2.36**.
 
-Build the release `.deb` **inside a Debian 12 environment** (chroot or container).
-Building on Ubuntu 24.04 produces binaries that require `GLIBC_2.38+` and will not run on BOSS.
+Build the release `.deb` **inside Debian 12**. Ubuntu 24.04 builds need `GLIBC_2.38+` and will not run on BOSS.
 
 ### Bookworm chroot (recommended)
 
@@ -15,78 +14,62 @@ sudo mount --bind "$PWD" /opt/bookworm-root/workspace
 sudo chroot /opt/bookworm-root bash -lc '
   apt-get update
   apt-get install -y build-essential cmake pkg-config g++ \
-    libgtkmm-4.0-dev libglibmm-2.68-dev libgtk-4-dev python3 fakeroot
+    libgtkmm-4.0-dev libglibmm-2.68-dev libgtk-4-dev \
+    python3 python3-gi python3-cairo gir1.2-gtk-3.0 libgtk-3-0 fakeroot
   cd /workspace && ./packaging/build-deb.sh
 '
 ```
 
-## Dependencies (Ubuntu / Debian build host)
-
+## Runtime dependencies (BOSS install)
 
 ```bash
-sudo apt-get update
-sudo apt-get install -y \
-  build-essential cmake pkg-config g++ \
-  libgtkmm-4.0-dev libglibmm-2.68-dev libgtk-4-dev \
-  python3 policykit-1 fakeroot dpkg-dev
+sudo apt-get install -y python3 python3-gi python3-cairo gir1.2-gtk-3.0 libgtk-3-0
 ```
 
-## Configure and compile
+gtkmm-4 packages are **optional** (only for `BOSS_SENTINEL_UI=cpp`).
+
+## Configure and compile (optional C++ binary)
 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
 cmake --build build -j"$(nproc)"
 ```
 
-Binary: `build/boss-sentinel-bin`  
-CSS is copied next to the binary under `build/share/boss-sentinel/style.css`.
+Binary: `build/boss-sentinel-bin`
 
-Run locally:
-
-```bash
-chmod +x scripts/boss-sentinel scripts/boss-sentinel-helper
-./scripts/boss-sentinel
-# or
-./build/boss-sentinel-bin
-```
-
-The healer/optimizer look for the helper at:
-
-1. `/usr/libexec/boss-sentinel/boss-sentinel-helper`
-2. `scripts/boss-sentinel-helper` (dev tree)
-
-## Produce the `.deb`
+## Package `.deb`
 
 ```bash
 ./packaging/build-deb.sh
+# → releases/boss-sentinel_<version>-1_amd64.deb
 ```
 
-Output:
+The script:
 
-- `releases/boss-sentinel_2.0.0-1_<arch>.deb`
-- copy in `dist/`
+1. Builds the C++ binary  
+2. Rejects glibc > 2.36 symbols  
+3. Stages GTK3 UI + helper + docs + desktop/polkit  
+4. Runs `dpkg-deb --build`
 
-Install:
+## Local run without installing
 
 ```bash
-sudo apt-get install -y ./releases/boss-sentinel_2.0.0-1_amd64.deb
+chmod +x scripts/boss-sentinel scripts/boss-sentinel-helper scripts/boss-sentinel-gtk3.py
+./scripts/boss-sentinel
 ```
 
-## Alternative: debhelper
+## Docs in the package
 
-```bash
-dpkg-buildpackage -us -uc -b
-```
+Installed under `/usr/share/doc/boss-sentinel/`:
 
-Uses `debian/rules` with the CMake buildsystem.
-
-## Runtime data
-
-| Path | Purpose |
-|------|---------|
-| `~/.config/boss-sentinel/settings.json` | Auto-heal prompt toggle, poll interval |
-| `~/.local/share/boss-sentinel/boss-sentinel.log` | Full event log |
+- `DOCUMENTATION_INDEX.md`
+- `FILE_STRUCTURE.md`
+- `SYSTEM_DESIGN.md`
+- `CODE_WALKTHROUGH.md`
+- `USER_GUIDE.md`
+- `BUILD.md`
+- `README.md`
 
 ## Version
 
-Set in `CMakeLists.txt` (`project(boss-sentinel VERSION 2.0.0 …)`). The packaging script reads that version for the `.deb` name.
+Set in `CMakeLists.txt` (`project(boss-sentinel VERSION …)`). `packaging/build-deb.sh` reads it.

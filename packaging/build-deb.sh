@@ -63,7 +63,9 @@ install -m 0644 src/ui/style.css "$STAGE/usr/share/boss-sentinel/style.css"
 install -m 0644 data/desktop/org.bosssentinel.BossSentinel.desktop "$STAGE/usr/share/applications/"
 install -m 0644 data/icons/org.bosssentinel.BossSentinel.svg "$STAGE/usr/share/icons/hicolor/scalable/apps/"
 install -m 0644 data/polkit/org.bosssentinel.policy "$STAGE/usr/share/polkit-1/actions/"
-install -m 0644 docs/BUILD.md docs/SYSTEM_DESIGN.md README.md "$STAGE/usr/share/doc/boss-sentinel/" 2>/dev/null || true
+install -m 0644 docs/BUILD.md docs/SYSTEM_DESIGN.md docs/FILE_STRUCTURE.md \
+  docs/CODE_WALKTHROUGH.md docs/USER_GUIDE.md docs/DOCUMENTATION_INDEX.md \
+  README.md "$STAGE/usr/share/doc/boss-sentinel/" 2>/dev/null || true
 
 if [[ "$BUNDLE_LIBS" == "1" ]]; then
   echo "==> Bundling gtkmm runtime libraries (BOSS_BUNDLE_LIBS=1)"

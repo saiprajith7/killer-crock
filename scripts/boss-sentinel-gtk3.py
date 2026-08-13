@@ -298,7 +298,7 @@ class MainWindow(Gtk.Window):
         self._upd_busy = False
         self._load_css()
         self._build()
-        log("BOSS-Sentinel rich GTK3 UI 2.2.1 starting")
+        log("BOSS-Sentinel rich GTK3 UI 2.2.2 starting")
         GLib.idle_add(self.refresh)
         GLib.timeout_add(int(self.settings.get("poll_ms", 2500)), self._tick)
         self.connect("destroy", Gtk.main_quit)
