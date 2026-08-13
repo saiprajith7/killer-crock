@@ -1,3 +1,10 @@
+boss-sentinel (2.1.1-1) unstable; urgency=medium
+
+  * Fix launch segfault on BOSS when EGL/DRI2 fails: force GSK_RENDERER=cairo.
+  * Harden Cairo draw paths against zero-size widgets.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Thu, 13 Aug 2026 12:25:00 +0000
+
 boss-sentinel (2.1.0-1) unstable; urgency=medium
 
   * Rich UI refresh matching prior BOSS-Sentinel / BOSS-Optimize look.

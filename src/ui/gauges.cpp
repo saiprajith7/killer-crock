@@ -64,6 +64,7 @@ bool DeviceGraph::on_tick() {
 }
 
 void DeviceGraph::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h) {
+  if (w < 32 || h < 32) return;
   cr->set_source_rgb(SURFACE[0], SURFACE[1], SURFACE[2]);
   cr->rectangle(0, 0, w, h);
   cr->fill();
@@ -159,6 +160,7 @@ bool HeroVitality::on_tick() {
 }
 
 void HeroVitality::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h) {
+  if (w < 20 || h < 20) return;
   cr->set_source_rgb(CANVAS[0], CANVAS[1], CANVAS[2]);
   cr->rectangle(0, 0, w, h);
   cr->fill();
@@ -218,6 +220,7 @@ bool BreathWave::on_tick() {
 }
 
 void BreathWave::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h) {
+  if (w < 10 || h < 10) return;
   cr->set_source_rgb(CANVAS[0], CANVAS[1], CANVAS[2]);
   cr->rectangle(0, 0, w, h);
   cr->fill();

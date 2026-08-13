@@ -15,10 +15,20 @@ if [[ -z "$BIN" ]]; then
   exit 1
 fi
 
-# Only prepend bundled libs if present AND system gtkmm is missing
+# Prefer bundled libs only when system gtkmm is missing
 LIBDIR="$(dirname "$BIN")"
 if [[ -e "$LIBDIR/libgtkmm-4.0.so.0" ]] && ! ldconfig -p 2>/dev/null | grep -q 'libgtkmm-4.0.so.0'; then
   export LD_LIBRARY_PATH="${LIBDIR}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+fi
+
+# BOSS / VM GPUs often fail EGL (DRI2 authenticate) → GTK GSK segfault.
+# Force software Cairo renderer unless the user already chose one.
+export GSK_RENDERER="${GSK_RENDERER:-cairo}"
+# Prefer X11 when available; avoids some Wayland+EGL crash paths
+if [[ -z "${GDK_BACKEND:-}" ]]; then
+  if [[ -n "${DISPLAY:-}" ]]; then
+    export GDK_BACKEND=x11
+  fi
 fi
 
 export BOSS_SENTINEL_HELPER="${BOSS_SENTINEL_HELPER:-/usr/libexec/boss-sentinel/boss-sentinel-helper}"
