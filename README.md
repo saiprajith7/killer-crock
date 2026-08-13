@@ -11,6 +11,7 @@ Default UI: **Python GTK3** (stable on BOSS). Optional C++ GTK4 via `BOSS_SENTIN
 | Doc | Description |
 |-----|-------------|
 | [docs/DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md) | **Master index** |
+| [docs/BOSS-Sentinel-Complete-Guide.docx](docs/BOSS-Sentinel-Complete-Guide.docx) | **Word/Google Docs full guide** |
 | [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | Install, use, purge |
 | [docs/FILE_STRUCTURE.md](docs/FILE_STRUCTURE.md) | Full file tree |
 | [docs/SYSTEM_DESIGN.md](docs/SYSTEM_DESIGN.md) | Architecture & flows |
@@ -32,8 +33,8 @@ curl -fsSL https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/bos
 boss-sentinel
 ```
 
-**v2.2.2** — Autoheal + Updates tabs, Logs sub-tabs, GNOME per-CPU graph, disk pie, full docs.
+**v2.2.3** — Autoheal + Updates tabs, Logs sub-tabs, GNOME per-CPU graph, disk pie, full docs.
 
-Package: `releases/boss-sentinel_2.2.2-1_amd64.deb`
+Package: `releases/boss-sentinel_2.2.3-1_amd64.deb`
 
 After install, docs are also at `/usr/share/doc/boss-sentinel/`.
