@@ -1,0 +1,15 @@
+build/
+dist/
+debian/boss-sentinel/
+debian/.debhelper/
+debian/files
+debian/*.substvars
+debian/*.debhelper*
+debian/debhelper-build-stamp
+*.o
+*.a
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+.cache/

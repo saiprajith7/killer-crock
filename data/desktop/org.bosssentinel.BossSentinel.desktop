@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=BOSS-Sentinel
+GenericName=System Health & Performance
+Comment=Unified auto-heal and performance optimization monitor
+Exec=boss-sentinel
+Icon=org.bosssentinel.BossSentinel
+Terminal=false
+Categories=System;Monitor;
+StartupNotify=true
+StartupWMClass=boss-sentinel-bin
+X-GNOME-UsesNotifications=true

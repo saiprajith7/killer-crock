@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Launcher for BOSS-Sentinel (installed or local build)
+set -euo pipefail
+BIN=""
+for cand in /usr/lib/boss-sentinel/boss-sentinel-bin \
+            "$(dirname "$0")/../build/boss-sentinel-bin" \
+            "$(dirname "$0")/../build/Release/boss-sentinel-bin"; do
+  if [[ -x "$cand" ]]; then
+    BIN="$cand"
+    break
+  fi
+done
+if [[ -z "$BIN" ]]; then
+  echo "boss-sentinel: binary not found. Build with cmake or install the .deb." >&2
+  exit 1
+fi
+export BOSS_SENTINEL_HELPER="${BOSS_SENTINEL_HELPER:-/usr/libexec/boss-sentinel/boss-sentinel-helper}"
+exec "$BIN" "$@"

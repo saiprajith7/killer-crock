@@ -1,0 +1,173 @@
+#!/usr/bin/env python3
+"""Privileged BOSS-Sentinel helper — heal + performance actions via pkexec.
+
+Stdout: one JSON object {"ok": true|false, "message": "...", "details": "..."}
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+
+def emit(ok: bool, message: str, details: str = "") -> int:
+    print(json.dumps({"ok": ok, "message": message, "details": details}))
+    return 0 if ok else 1
+
+
+def cpu_performance() -> int:
+    changed = 0
+    cpu = Path("/sys/devices/system/cpu")
+    for gov in cpu.glob("cpu[0-9]*/cpufreq/scaling_governor"):
+        try:
+            gov.write_text("performance\n")
+            changed += 1
+        except OSError:
+            pass
+    if changed:
+        return emit(True, f"CPU governor → performance ({changed} cores)")
+    try:
+        proc = subprocess.run(
+            ["powerprofilesctl", "set", "performance"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if proc.returncode == 0:
+            return emit(True, "Platform power profile → performance")
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+    return emit(False, "Could not set CPU performance governor")
+
+
+def power_performance() -> int:
+    try:
+        proc = subprocess.run(
+            ["powerprofilesctl", "set", "performance"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if proc.returncode == 0:
+            return emit(True, "powerprofilesctl → performance")
+        return emit(False, "powerprofilesctl failed", proc.stderr.strip())
+    except FileNotFoundError:
+        return emit(False, "powerprofilesctl not installed")
+    except subprocess.TimeoutExpired:
+        return emit(False, "powerprofilesctl timed out")
+
+
+def io_boost() -> int:
+    details = []
+    for queue in Path("/sys/block").glob("*/queue/scheduler"):
+        try:
+            avail = queue.read_text()
+            pick = None
+            for cand in ("none", "mq-deadline", "kyber", "bfq"):
+                if cand in avail.replace("[", " ").replace("]", " ").split():
+                    pick = cand
+                    break
+            if pick:
+                queue.write_text(pick + "\n")
+                details.append(f"{queue.parent.parent.name}={pick}")
+        except OSError:
+            continue
+    if details:
+        return emit(True, "I/O schedulers updated", "; ".join(details[:8]))
+    return emit(False, "No I/O schedulers were writable")
+
+
+def drop_caches() -> int:
+    os.sync()
+    try:
+        Path("/proc/sys/vm/drop_caches").write_text("3\n")
+        return emit(True, "Page caches dropped")
+    except OSError as exc:
+        return emit(False, f"drop_caches failed: {exc}")
+
+
+def renice_hogs() -> int:
+    """Lower priority of top CPU/memory consumers (best-effort)."""
+    try:
+        out = subprocess.check_output(
+            ["ps", "-eo", "pid,pcpu,comm", "--sort=-pcpu"],
+            text=True,
+            timeout=10,
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
+        return emit(False, f"ps failed: {exc}")
+    changed = 0
+    details = []
+    for line in out.splitlines()[1:12]:
+        parts = line.split()
+        if len(parts) < 3:
+            continue
+        try:
+            pid = int(parts[0])
+            if pid <= 1:
+                continue
+            os.setpriority(os.PRIO_PROCESS, pid, 5)
+            changed += 1
+            details.append(parts[2])
+        except (OSError, ValueError):
+            continue
+    return emit(changed > 0, f"Reniced {changed} busy processes", ", ".join(details[:8]))
+
+
+def purge_disk() -> int:
+    os.sync()
+    msgs = []
+    try:
+        Path("/proc/sys/vm/drop_caches").write_text("3\n")
+        msgs.append("caches")
+    except OSError:
+        pass
+    try:
+        subprocess.run(["apt-get", "clean"], capture_output=True, text=True, timeout=60)
+        msgs.append("apt-clean")
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+    removed = 0
+    for root in (Path("/tmp"), Path("/var/tmp")):
+        if not root.exists():
+            continue
+        for p in root.iterdir():
+            if not p.name.startswith(("boss-", "tmp.", "scrap-", "cache-")):
+                continue
+            try:
+                if p.is_file():
+                    p.unlink()
+                    removed += 1
+            except OSError:
+                pass
+    msgs.append(f"tmp={removed}")
+    return emit(True, "Disk purge complete", ", ".join(msgs))
+
+
+ACTIONS = {
+    "cpu_performance": cpu_performance,
+    "power_performance": power_performance,
+    "io_boost": io_boost,
+    "drop_caches": drop_caches,
+    "renice_hogs": renice_hogs,
+    "purge_disk": purge_disk,
+}
+
+
+def main(argv: list[str]) -> int:
+    if len(argv) < 2 or argv[1] in {"-h", "--help"}:
+        print("Usage: boss-sentinel-helper <action>", file=sys.stderr)
+        print("Actions:", ", ".join(sorted(ACTIONS)), file=sys.stderr)
+        return 2
+    action = argv[1]
+    fn = ACTIONS.get(action)
+    if not fn:
+        return emit(False, f"Unknown action: {action}")
+    return fn()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))

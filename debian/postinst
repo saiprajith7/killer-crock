@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+if command -v update-desktop-database >/dev/null 2>&1; then
+  update-desktop-database -q /usr/share/applications || true
+fi
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+  gtk-update-icon-cache -f -t /usr/share/icons/hicolor >/dev/null 2>&1 || true
+fi
+# Ensure helper is executable
+chmod 755 /usr/libexec/boss-sentinel/boss-sentinel-helper 2>/dev/null || true
+chmod 755 /usr/bin/boss-sentinel 2>/dev/null || true
+echo "BOSS-Sentinel installed. Launch with: boss-sentinel"

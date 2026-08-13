@@ -1,0 +1,7 @@
+boss-sentinel (2.0.0-1) unstable; urgency=medium
+
+  * Initial C++ unified BOSS-Sentinel release.
+  * Combines health monitoring, auto-heal prompts, and performance optimization.
+  * Full action logging under ~/.local/share/boss-sentinel/.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Mon, 13 Aug 2026 07:00:00 +0000
