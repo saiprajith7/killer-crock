@@ -6,9 +6,10 @@
 
 | File | What it gives you |
 |------|-------------------|
-| **[BOSS-Sentinel-Complete-Guide.docx](BOSS-Sentinel-Complete-Guide.docx)** | **Full guide** — frontend, backend, implementation, code explanation. Open in Word or upload to Google Docs. |
+| **[BOSS-Sentinel-Source-Code-and-Explanation.docx](BOSS-Sentinel-Source-Code-and-Explanation.docx)** | **ALL source code + explanations** (Word / Google Docs) |
+| [BOSS-Sentinel-Complete-Guide.docx](BOSS-Sentinel-Complete-Guide.docx) | Shorter technical guide (no full code dump) |
 
-Also mirrored at: `releases/BOSS-Sentinel-Complete-Guide.docx`
+Also mirrored at: `releases/BOSS-Sentinel-Source-Code-and-Explanation.docx`
 
 ### Upload to Google Docs
 1. Download the `.docx`

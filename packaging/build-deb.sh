@@ -66,6 +66,7 @@ install -m 0644 data/polkit/org.bosssentinel.policy "$STAGE/usr/share/polkit-1/a
 install -m 0644 docs/BUILD.md docs/SYSTEM_DESIGN.md docs/FILE_STRUCTURE.md \
   docs/CODE_WALKTHROUGH.md docs/USER_GUIDE.md docs/DOCUMENTATION_INDEX.md \
   docs/BOSS-Sentinel-Complete-Guide.docx \
+  docs/BOSS-Sentinel-Source-Code-and-Explanation.docx \
   README.md "$STAGE/usr/share/doc/boss-sentinel/" 2>/dev/null || true
 
 if [[ "$BUNDLE_LIBS" == "1" ]]; then

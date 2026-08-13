@@ -33,8 +33,8 @@ curl -fsSL https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/bos
 boss-sentinel
 ```
 
-**v2.2.3** — Autoheal + Updates tabs, Logs sub-tabs, GNOME per-CPU graph, disk pie, full docs.
+**v2.2.4** — Autoheal + Updates tabs, Logs sub-tabs, GNOME per-CPU graph, disk pie, full docs.
 
-Package: `releases/boss-sentinel_2.2.3-1_amd64.deb`
+Package: `releases/boss-sentinel_2.2.4-1_amd64.deb`
 
 After install, docs are also at `/usr/share/doc/boss-sentinel/`.
