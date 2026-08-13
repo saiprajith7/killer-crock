@@ -13,16 +13,26 @@ Unified **health monitoring**, **auto-heal**, and **performance optimization** i
 
 ## Quick install (BOSS Linux / Debian 12)
 
-```bash
-curl -L -o boss-sentinel_2.1.2-1_amd64.deb \
-  https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/boss-sentinel-cpp-unified-02f6/releases/boss-sentinel_2.1.2-1_amd64.deb
+One-shot script: removes old **boss-sentinel** / **boss-optimize** packages and
+`.deb` files on the machine, then installs the unified app and keeps one new `.deb`
+in `~/boss-sentinel/`.
 
-sudo dpkg -i ./boss-sentinel_2.1.2-1_amd64.deb
-boss-sentinel
+```bash
+curl -fsSL https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/boss-sentinel-cpp-unified-02f6/scripts/install-unified.sh | bash
 ```
 
-v2.1.2 fixes the BOSS launch segfault (EGL/DRI2) by dropping Cairo custom
-DrawingArea graphs in favor of LevelBar gauges, plus stronger software-GL env.
+Or download the package yourself:
+
+```bash
+curl -L -o boss-sentinel_2.1.3-1_amd64.deb \
+  https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/boss-sentinel-cpp-unified-02f6/releases/boss-sentinel_2.1.3-1_amd64.deb
+
+bash <(curl -fsSL https://raw.githubusercontent.com/saiprajith7/killer-crock/cursor/boss-sentinel-cpp-unified-02f6/scripts/install-unified.sh) \
+  ./boss-sentinel_2.1.3-1_amd64.deb
+```
+
+v2.1.3 is the unified Sentinel + Optimize app (replaces separate Optimize packages).
+v2.1.2+ fixes the BOSS launch segfault by dropping Cairo custom DrawingArea graphs.
 ## Build
 
 See [docs/BUILD.md](docs/BUILD.md). System design: [docs/SYSTEM_DESIGN.md](docs/SYSTEM_DESIGN.md).
