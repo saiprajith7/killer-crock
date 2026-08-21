@@ -1,0 +1,56 @@
+#!/usr/bin/python3
+"""Reliable BOSS Health launcher with visible error reporting."""
+
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+import traceback
+from pathlib import Path
+
+
+def _log(msg: str) -> None:
+    try:
+        log_dir = Path.home() / ".cache" / "boss-health"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        with (log_dir / "launch.log").open("a", encoding="utf-8") as fh:
+            fh.write(msg + "\n")
+    except OSError:
+        pass
+
+
+def _show_error(title: str, message: str) -> None:
+    _log(f"{title}: {message}")
+    print(f"{title}: {message}", file=sys.stderr)
+    try:
+        subprocess.Popen(
+            ["notify-send", "-u", "critical", title, message[:180]],
+            start_new_session=True,
+        )
+    except Exception:
+        pass
+
+
+def main() -> int:
+    for p in ("/usr/lib/python3/dist-packages", "/usr/local/lib/python3/dist-packages"):
+        if p not in sys.path and os.path.isdir(p):
+            sys.path.insert(0, p)
+
+    argv = sys.argv[1:]
+    try:
+        from boss_health.__main__ import main as bh_main
+
+        return int(bh_main(argv) or 0)
+    except Exception:
+        err = traceback.format_exc()
+        _log(err)
+        _show_error(
+            "BOSS Health failed to start",
+            "Could not open dashboard. See ~/.cache/boss-health/launch.log",
+        )
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

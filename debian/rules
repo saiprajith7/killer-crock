@@ -1,0 +1,53 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+export PYBUILD_NAME = boss-sentinel
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_auto_install:
+	dh_auto_install
+	# Privileged helper (existing sentinel)
+	install -d debian/boss-sentinel/usr/libexec/boss-sentinel
+	install -m 0755 scripts/vitaheal-helper debian/boss-sentinel/usr/libexec/boss-sentinel/boss-sentinel-helper
+	# Desktop launchers
+	install -d debian/boss-sentinel/usr/share/applications
+	install -m 0644 data/desktop/vitaheal.desktop debian/boss-sentinel/usr/share/applications/boss-sentinel.desktop
+	install -m 0644 data/desktop/boss-health.desktop debian/boss-sentinel/usr/share/applications/boss-health.desktop
+	# Icons
+	install -d debian/boss-sentinel/usr/share/icons/hicolor/scalable/apps
+	install -m 0644 data/icons/vitaheal.svg debian/boss-sentinel/usr/share/icons/hicolor/scalable/apps/boss-sentinel.svg
+	install -m 0644 data/icons/boss-health.svg debian/boss-sentinel/usr/share/icons/hicolor/scalable/apps/boss-health.svg
+	# Polkit
+	install -d debian/boss-sentinel/usr/share/polkit-1/actions
+	install -m 0644 data/polkit/org.vitaheal.policy debian/boss-sentinel/usr/share/polkit-1/actions/org.bosssentinel.policy
+	# systemd user unit
+	install -d debian/boss-sentinel/usr/lib/systemd/user
+	install -m 0644 data/systemd/vitaheal-daemon.service debian/boss-sentinel/usr/lib/systemd/user/boss-sentinel-daemon.service
+	# Autostart with graphical session
+	install -d debian/boss-sentinel/etc/xdg/autostart
+	install -m 0644 data/desktop/vitaheal-daemon.desktop debian/boss-sentinel/etc/xdg/autostart/boss-sentinel-daemon.desktop
+	# BOSS Health config
+	install -d debian/boss-sentinel/etc/boss-health
+	install -m 0644 data/config/boss-health.conf debian/boss-sentinel/etc/boss-health/boss-health.conf
+	install -d debian/boss-sentinel/usr/share/boss-health
+	install -m 0644 data/config/boss-health.conf debian/boss-sentinel/usr/share/boss-health/boss-health.conf
+	# Cinnamon applet (panel icon → dashboard)
+	install -d debian/boss-sentinel/usr/share/cinnamon/applets/boss-health@boss
+	install -m 0755 scripts/boss-health-launch debian/boss-sentinel/usr/bin/boss-health
+	install -d debian/boss-sentinel/usr/libexec/boss-health
+	install -m 0755 scripts/boss-health-enable-panel debian/boss-sentinel/usr/libexec/boss-health/boss-health-enable-panel
+	install -m 0644 data/desktop/boss-health-tray.desktop debian/boss-sentinel/etc/xdg/autostart/boss-health-tray.desktop
+	install -m 0644 data/cinnamon/applets/boss-health@boss/applet.js \
+		debian/boss-sentinel/usr/share/cinnamon/applets/boss-health@boss/applet.js
+	install -m 0644 data/cinnamon/applets/boss-health@boss/metadata.json \
+		debian/boss-sentinel/usr/share/cinnamon/applets/boss-health@boss/metadata.json
+	install -m 0644 data/cinnamon/applets/boss-health@boss/icon.png \
+		debian/boss-sentinel/usr/share/cinnamon/applets/boss-health@boss/icon.png
+	install -m 0644 data/icons/boss-health.svg \
+		debian/boss-sentinel/usr/share/cinnamon/applets/boss-health@boss/icon.svg
+
+override_dh_builddeb:
+	mkdir -p dist
+	dh_builddeb --destdir=dist

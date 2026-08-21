@@ -1,0 +1,51 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    configure)
+        if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+            gtk-update-icon-cache -f /usr/share/icons/hicolor >/dev/null 2>&1 || true
+        fi
+        if command -v update-desktop-database >/dev/null 2>&1; then
+            update-desktop-database -q /usr/share/applications || true
+        fi
+
+        # Put BOSS Health in the menu bar for the installing user:
+        # 1) enable Cinnamon applet  2) start tray icon now
+        TARGET_USER="${SUDO_USER:-}"
+        if [ -z "$TARGET_USER" ] || [ "$TARGET_USER" = "root" ]; then
+            # fall back to the owner of DISPLAY :0 if possible
+            TARGET_USER="$(ps -o user= -C cinnamon 2>/dev/null | head -n1 | tr -d ' ')"
+        fi
+        if [ -n "$TARGET_USER" ] && [ "$TARGET_USER" != "root" ]; then
+            UID_NUM="$(id -u "$TARGET_USER" 2>/dev/null || true)"
+            if [ -n "$UID_NUM" ]; then
+                export DISPLAY="${DISPLAY:-:0}"
+                sudo -u "$TARGET_USER" \
+                    DISPLAY="$DISPLAY" \
+                    XDG_RUNTIME_DIR="/run/user/$UID_NUM" \
+                    DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$UID_NUM/bus" \
+                    /usr/libexec/boss-health/boss-health-enable-panel \
+                    >/dev/null 2>&1 || true
+                # Reload applets so fixed applet.js is picked up without logout
+                sudo -u "$TARGET_USER" \
+                    DISPLAY="$DISPLAY" \
+                    XDG_RUNTIME_DIR="/run/user/$UID_NUM" \
+                    DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$UID_NUM/bus" \
+                    cinnamon-dbus-command ReloadXlet boss-health@boss APPLET \
+                    >/dev/null 2>&1 || true
+            fi
+        fi
+
+        if [ -n "${SUDO_USER:-}" ] && command -v systemctl >/dev/null 2>&1; then
+            sudo -u "$SUDO_USER" XDG_RUNTIME_DIR="/run/user/$(id -u "$SUDO_USER")" \
+                systemctl --user daemon-reload >/dev/null 2>&1 || true
+            sudo -u "$SUDO_USER" XDG_RUNTIME_DIR="/run/user/$(id -u "$SUDO_USER")" \
+                systemctl --user enable boss-sentinel-daemon.service >/dev/null 2>&1 || true
+        fi
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0

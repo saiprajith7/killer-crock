@@ -1,0 +1,57 @@
+boss-sentinel (1.3.4-1) unstable; urgency=medium
+
+  * Fix Gdk 3/4 conflict: BOSS Health dashboard now uses GTK4 (matches
+    BOSS / sentinel stack). Tray remains GTK3 in a separate process.
+
+ -- BOSS Health Packagers <packagers@boss-health.local>  Fri, 21 Aug 2026 09:25:00 +0000
+
+boss-sentinel (1.3.3-1) unstable; urgency=medium
+
+  * Fix panel/menu click not opening dashboard (applet menu hijack).
+  * Use absolute-path spawn, button-press tray clicks, and error dialogs.
+
+ -- BOSS Health Packagers <packagers@boss-health.local>  Fri, 21 Aug 2026 09:20:00 +0000
+
+boss-sentinel (1.3.2-1) unstable; urgency=medium
+
+  * Auto-show BOSS Health in the Cinnamon menu bar after dpkg install
+    (tray icon + applet enable + autostart). Click opens the dashboard.
+
+ -- BOSS Health Packagers <packagers@boss-health.local>  Fri, 21 Aug 2026 09:15:00 +0000
+
+boss-sentinel (1.3.1-1) unstable; urgency=medium
+
+  * Fix Cinnamon applet for BOSS 10: local icon.png, safe launch APIs,
+    no dependency on spawnCommandLineAsync / unbound gettext.
+
+ -- BOSS Health Packagers <packagers@boss-health.local>  Fri, 21 Aug 2026 09:10:00 +0000
+
+boss-sentinel (1.3.0-1) unstable; urgency=medium
+
+  * Add BOSS Health System Readiness dashboard (Connectivity, System Health,
+    Services) reusing existing BOSS-Sentinel CPU/RAM/Disk/Overall collectors.
+  * Add Cinnamon panel applet (boss-health@boss) that opens the dashboard.
+  * Ship boss-health CLI/GUI entry point and /etc/boss-health config.
+
+ -- BOSS Health Packagers <packagers@boss-health.local>  Fri, 21 Aug 2026 07:40:00 +0000
+
+boss-sentinel (1.2.0-1) unstable; urgency=medium
+
+  * Add Updates tab wired to apt sources.list with Yes/No install.
+  * Add Update Log; keep app lightweight (on-demand apt, slower UI ticks).
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Sun, 09 Aug 2026 07:40:00 +0000
+
+boss-sentinel (1.1.0-1) unstable; urgency=medium
+
+  * Rebrand to BOSS-Sentinel with minimal accessible blue theme.
+  * Tabbed scrollable UI: Overview, CPU, Memory, Disk, GPU, Thermal, Logs.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Sun, 09 Aug 2026 07:35:00 +0000
+
+boss-sentinel (1.0.0-1) unstable; urgency=medium
+
+  * Initial release — native PC health monitor with interactive
+    Yes/No autohealing for Debian.
+
+ -- BOSS-Sentinel Packagers <packagers@boss-sentinel.local>  Sun, 09 Aug 2026 06:30:00 +0000

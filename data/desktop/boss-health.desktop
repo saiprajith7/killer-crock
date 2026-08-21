@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=BOSS Health
+GenericName=System Readiness
+Comment=BOSS Health — Connectivity, System Health (Sentinel), and Services readiness
+Exec=/usr/bin/boss-health
+Icon=boss-health
+Terminal=false
+Type=Application
+Categories=System;Monitor;Utility;
+Keywords=health;readiness;boss;sentinel;cpu;memory;disk;isoc;repository;
+StartupNotify=false
+StartupWMClass=boss-health

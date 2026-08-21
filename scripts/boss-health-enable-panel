@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+"""Enable BOSS Health on the Cinnamon panel + start the tray icon for a user."""
+
+from __future__ import annotations
+
+import os
+import re
+import subprocess
+import sys
+
+
+UUID = "boss-health@boss"
+
+
+def _run(cmd: list[str], env: dict[str, str] | None = None) -> tuple[int, str]:
+    try:
+        p = subprocess.run(cmd, capture_output=True, text=True, env=env, check=False)
+        return p.returncode, (p.stdout or p.stderr or "").strip()
+    except OSError as exc:
+        return 1, str(exc)
+
+
+def enable_cinnamon_applet(env: dict[str, str]) -> bool:
+    code, raw = _run(["gsettings", "get", "org.cinnamon", "enabled-applets"], env=env)
+    if code != 0 or not raw:
+        return False
+    if UUID in raw:
+        return True  # already enabled
+
+    # Find next instance id
+    ids = [int(x) for x in re.findall(r":(\d+)'", raw) or re.findall(r":(\d+)\"", raw)]
+    next_id = (max(ids) + 1) if ids else 20
+
+    # Insert near the right side of panel1
+    entry = f"panel1:right:0:{UUID}:{next_id}"
+
+    # raw looks like: ['a', 'b']
+    if raw.startswith("[") and raw.endswith("]"):
+        inner = raw[1:-1].strip()
+        if inner:
+            new_val = f"[ {inner}, '{entry}' ]"
+        else:
+            new_val = f"[ '{entry}' ]"
+    else:
+        new_val = f"[ '{entry}' ]"
+
+    code2, out2 = _run(["gsettings", "set", "org.cinnamon", "enabled-applets", new_val], env=env)
+    return code2 == 0
+
+
+def start_tray(env: dict[str, str]) -> None:
+    # Prefer installed binary
+    for cmd in (
+        ["boss-health-tray"],
+        ["boss-health", "--tray"],
+    ):
+        if _run(["bash", "-lc", f"command -v {cmd[0]}"], env=env)[0] == 0:
+            subprocess.Popen(cmd, env=env, start_new_session=True)
+            return
+    subprocess.Popen(
+        [sys.executable, "-m", "boss_health", "--tray"],
+        env=env,
+        start_new_session=True,
+    )
+
+
+def main() -> int:
+    user = os.environ.get("SUDO_USER") or os.environ.get("USER") or ""
+    uid = None
+    if user and user != "root":
+        try:
+            import pwd
+
+            uid = pwd.getpwnam(user).pw_uid
+        except KeyError:
+            uid = None
+
+    env = os.environ.copy()
+    if uid is not None:
+        env["HOME"] = os.path.expanduser(f"~{user}")
+        env["XDG_RUNTIME_DIR"] = f"/run/user/{uid}"
+        env["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{uid}/bus"
+        env["DISPLAY"] = os.environ.get("DISPLAY", ":0")
+        env["XAUTHORITY"] = os.environ.get("XAUTHORITY") or f"/home/{user}/.Xauthority"
+
+    ok = enable_cinnamon_applet(env)
+    start_tray(env)
+    print("BOSS Health panel: applet", "enabled" if ok else "tray-only (gsettings skipped)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
