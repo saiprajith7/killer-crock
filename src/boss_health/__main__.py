@@ -49,7 +49,7 @@ def main(argv: list[str] | None = None) -> int:
     except (ImportError, ValueError) as exc:
         print(
             f"BOSS Health GUI unavailable ({exc}). "
-            "Install gir1.2-gtk-3.0 / python3-gi, or use --once.",
+            "Install gir1.2-gtk-4.0 / python3-gi, or use --once.",
             file=sys.stderr,
         )
         return 2

@@ -2,7 +2,7 @@
 # Build a self-contained boss-sentinel (BOSS Health) .deb without debhelper.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-VERSION="1.3.3-1"
+VERSION="1.3.4-1"
 PKG="boss-sentinel_${VERSION}_all"
 STAGE="$ROOT/build/deb-stage/$PKG"
 DIST="$ROOT/dist"
@@ -88,8 +88,8 @@ Section: utils
 Priority: optional
 Architecture: all
 Maintainer: BOSS Health Packagers <packagers@boss-health.local>
-Depends: python3, python3-gi, python3-gi-cairo, python3-cairo, gir1.2-gtk-3.0
-Recommends: cinnamon, gir1.2-gtk-4.0, gir1.2-adw-1, policykit-1, libnotify-bin, systemd, apt
+Depends: python3, python3-gi, python3-gi-cairo, python3-cairo, gir1.2-gtk-4.0
+Recommends: cinnamon, gir1.2-gtk-3.0, gir1.2-adw-1, policykit-1, libnotify-bin, systemd, apt
 Provides: boss-health, vitaheal
 Installed-Size: ${SIZE_KB}
 Description: BOSS Health — System Readiness with integrated BOSS-Sentinel

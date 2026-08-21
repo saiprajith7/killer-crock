@@ -1,3 +1,10 @@
+boss-sentinel (1.3.4-1) unstable; urgency=medium
+
+  * Fix Gdk 3/4 conflict: BOSS Health dashboard now uses GTK4 (matches
+    BOSS / sentinel stack). Tray remains GTK3 in a separate process.
+
+ -- BOSS Health Packagers <packagers@boss-health.local>  Fri, 21 Aug 2026 09:25:00 +0000
+
 boss-sentinel (1.3.3-1) unstable; urgency=medium
 
   * Fix panel/menu click not opening dashboard (applet menu hijack).

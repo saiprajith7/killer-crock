@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 import traceback
 from pathlib import Path
@@ -21,39 +22,17 @@ def _log(msg: str) -> None:
 
 def _show_error(title: str, message: str) -> None:
     _log(f"{title}: {message}")
-    # Prefer GTK dialog; fall back to notify-send / stderr
+    print(f"{title}: {message}", file=sys.stderr)
     try:
-        import gi
-
-        gi.require_version("Gtk", "3.0")
-        from gi.repository import Gtk
-
-        dlg = Gtk.MessageDialog(
-            transient_for=None,
-            flags=0,
-            message_type=Gtk.MessageType.ERROR,
-            buttons=Gtk.ButtonsType.CLOSE,
-            text=title,
-        )
-        dlg.format_secondary_text(message)
-        dlg.run()
-        dlg.destroy()
-        return
-    except Exception:
-        pass
-    try:
-        import subprocess
-
         subprocess.Popen(
-            ["notify-send", "-u", "critical", title, message],
+            ["notify-send", "-u", "critical", title, message[:180]],
             start_new_session=True,
         )
     except Exception:
-        print(f"{title}: {message}", file=sys.stderr)
+        pass
 
 
 def main() -> int:
-    # Ensure system package path is visible
     for p in ("/usr/lib/python3/dist-packages", "/usr/local/lib/python3/dist-packages"):
         if p not in sys.path and os.path.isdir(p):
             sys.path.insert(0, p)
@@ -68,10 +47,7 @@ def main() -> int:
         _log(err)
         _show_error(
             "BOSS Health failed to start",
-            "Could not open the System Readiness dashboard.\n\n"
-            f"{err[-800:]}\n\n"
-            "Log: ~/.cache/boss-health/launch.log\n"
-            "Try: sudo apt -f install && boss-health",
+            "Could not open dashboard. See ~/.cache/boss-health/launch.log",
         )
         return 1
 
