@@ -1,10 +1,25 @@
 # Local packages
 
-This folder may hold built `.deb` files for convenience.
+Built packages for BOSS Health / BOSS-Sentinel.
 
-Install from the distribution zip:
+## BOSS Health 1.3.0 (recommended)
 
 ```bash
-sudo apt install ./install/boss-sentinel_1.2.0-1_all.deb
+sudo dpkg -i ./releases/boss-sentinel_1.3.0-1_all.deb
+sudo apt -f install
+boss-health
+```
+
+Cinnamon: add applet **BOSS Health** to the panel, then click the icon.
+
+Also includes the existing full monitor:
+
+```bash
 boss-sentinel
+```
+
+Rebuild locally:
+
+```bash
+make deb-local
 ```
