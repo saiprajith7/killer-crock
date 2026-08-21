@@ -1,0 +1,8 @@
+{
+    "uuid": "boss-health@boss",
+    "name": "BOSS Health",
+    "description": "BOSS Health — System Readiness. Click to run checks and open the dashboard.",
+    "icon": "boss-health",
+    "max-instances": 1,
+    "version": "1.0.0"
+}

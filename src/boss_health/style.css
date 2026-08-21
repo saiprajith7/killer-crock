@@ -1,0 +1,138 @@
+/* BOSS Health — System Readiness dashboard */
+
+window.boss-health-window,
+.boss-health-window {
+  background-image: linear-gradient(165deg, #e8eef5 0%, #d5e0ec 45%, #c9d6e5 100%);
+}
+
+.boss-health-outer {
+  padding: 18px 20px 16px 20px;
+}
+
+.bh-brand {
+  font-family: "IBM Plex Sans", "Source Sans Pro", "Noto Sans", sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #0a2540;
+}
+
+.bh-subtitle {
+  font-family: "IBM Plex Sans", "Source Sans Pro", "Noto Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #3d5a73;
+  margin-top: 2px;
+}
+
+.bh-timestamp {
+  font-family: "IBM Plex Sans", "Source Sans Pro", "Noto Sans", sans-serif;
+  font-size: 11px;
+  color: #5a7388;
+  margin-top: 4px;
+}
+
+.bh-section {
+  background-color: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(10, 37, 64, 0.12);
+  border-radius: 10px;
+  padding: 12px 14px 10px 14px;
+  margin-top: 10px;
+}
+
+.bh-section-title {
+  font-family: "IBM Plex Sans", "Source Sans Pro", "Noto Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #0a2540;
+  margin-bottom: 8px;
+}
+
+.bh-row {
+  padding: 5px 2px;
+}
+
+.bh-row-label {
+  font-family: "IBM Plex Sans", "Source Sans Pro", "Noto Sans", sans-serif;
+  font-size: 13px;
+  color: #1a3348;
+}
+
+.bh-row-value {
+  font-family: "IBM Plex Mono", "Source Code Pro", "Noto Sans Mono", monospace;
+  font-size: 12px;
+  color: #3d5a73;
+  margin-right: 10px;
+}
+
+.bh-symbol {
+  font-size: 14px;
+  font-weight: 700;
+  min-width: 18px;
+}
+
+.status-pass { color: #1b7f4a; }
+.status-warn { color: #b78100; }
+.status-fail { color: #c0392b; }
+.status-unknown { color: #6b7c8a; }
+
+.bh-overall-box {
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(10, 37, 64, 0.14);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-top: 12px;
+}
+
+.bh-overall-caption {
+  font-family: "IBM Plex Sans", "Source Sans Pro", "Noto Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #5a7388;
+}
+
+.bh-overall-status {
+  font-family: "IBM Plex Sans", "Source Sans Pro", "Noto Sans", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.bh-actions {
+  margin-top: 14px;
+}
+
+.bh-actions button {
+  font-family: "IBM Plex Sans", "Source Sans Pro", "Noto Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 6px;
+  min-height: 0;
+}
+
+.bh-btn-primary {
+  background-image: linear-gradient(180deg, #1a4a73, #0a2540);
+  color: #f4f7fb;
+  border: none;
+}
+
+.bh-btn-secondary {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #0a2540;
+  border: 1px solid rgba(10, 37, 64, 0.2);
+}
+
+.bh-details {
+  font-family: "IBM Plex Sans", "Source Sans Pro", "Noto Sans", sans-serif;
+  font-size: 12px;
+  color: #1a3348;
+}
+
+.bh-details-mono {
+  font-family: "IBM Plex Mono", "Source Code Pro", "Noto Sans Mono", monospace;
+  font-size: 11px;
+  color: #3d5a73;
+}

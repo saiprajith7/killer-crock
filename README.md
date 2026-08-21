@@ -1,59 +1,67 @@
-# BOSS-Sentinel
+# BOSS Health — System Readiness
 
-Lightweight native Debian PC health monitor with interactive autohealing.
+One application for **BOSS GNU/Linux** (Cinnamon / Army & Navy client OS): Connectivity, System Health, and Services in a single readiness dashboard.
 
-GTK4 desktop app (not web). Minimal blue UI. Tabbed: Overview · CPU · Memory · Disk · GPU · Thermal · Updates · Logs.
+CPU, RAM, Disk, and Overall System Health **reuse the existing BOSS-Sentinel collectors** (`CpuCollector`, `MemoryCollector`, `DiskCollector`, `HealthEngine`). They are not duplicated.
 
-## Install (recommended)
+## Architecture
 
-```bash
-sudo apt install ./install/boss-sentinel_1.2.0-1_all.deb
-boss-sentinel
+```
+                    BOSS HEALTH
+                         │
+        ┌────────────────┼────────────────┐
+        ▼                ▼                ▼
+   CONNECTIVITY     SYSTEM HEALTH      SERVICES
+   Repo · ISOC ·    CPU · RAM · Disk   Critical ·
+   Network          · Overall          Security
+                    (sentinel)
 ```
 
-If dependencies are missing:
+## Install
 
 ```bash
-sudo apt -f install
-sudo dpkg -i ./install/boss-sentinel_1.2.0-1_all.deb
-boss-sentinel
+sudo dpkg -i ./dist/boss-sentinel_1.3.0-1_all.deb
+sudo apt -f install   # if dependencies are missing
 ```
 
-## Run from source (dev)
+Then:
 
 ```bash
-sudo apt install -y python3-gi python3-gi-cairo python3-cairo \
-  gir1.2-gtk-4.0 gir1.2-adw-1 policykit-1 libnotify-bin fonts-jetbrains-mono
-
-PYTHONPATH=src python3 -m vitaheal
-# or after make install:
-boss-sentinel
+boss-health              # GTK readiness dashboard
+boss-health --once       # JSON results (no GUI)
+boss-sentinel            # full existing sentinel monitor (unchanged)
 ```
 
-## Build the .deb yourself
+### Cinnamon panel icon
+
+1. Right-click panel → **Applets** → add **BOSS Health**
+2. Click the panel icon → runs checks → opens the dashboard
+
+## Run from source
 
 ```bash
-sudo apt install -y debhelper dh-python pybuild-plugin-pyproject \
-  python3-all python3-setuptools dpkg-dev fakeroot
-make deb
-# output: dist/boss-sentinel_1.2.0-1_all.deb
+PYTHONPATH=src python3 -m boss_health
+PYTHONPATH=src python3 -m boss_health --once
+make test
 ```
 
-## Tabs
+## What was reused vs added
 
-| Tab | Contents |
-|-----|----------|
-| Overview | Device graphs + active issues |
-| CPU | Cores, threads, model, per-core bars |
-| Memory | RAM + Swap |
-| Disk | Volumes + graph |
-| GPU | Util / VRAM / temp / power |
-| Thermal | All sensors |
-| Updates | apt sources.list check + Yes/No upgrade |
-| Logs | Trouble · Heal · Update Log |
+| Reused (sentinel) | Added (BOSS Health) |
+|-------------------|---------------------|
+| `vitaheal.monitor.cpu.CpuCollector` | Repository / ISOC / Network checks |
+| `vitaheal.monitor.memory.MemoryCollector` | Critical / Security services checks |
+| `vitaheal.monitor.disk.DiskCollector` | Readiness orchestrator + GTK dashboard |
+| `vitaheal.monitor.engine.HealthEngine` overall score | Cinnamon applet + `/etc/boss-health` config |
 
-Heal and upgrade actions always ask **Yes / No** first.
+See [TREE.md](TREE.md) for the full file tree.
 
-## License
+## Dashboard
 
-GPL-3.0-or-later
+- ✓ green = PASS · ⚠ yellow = WARNING · ✗ red = FAIL
+- Overall: SYSTEM READY / ACTION REQUIRED / SYSTEM NOT READY
+- Buttons: **View Details** · **Run Check Again** · **Close**
+
+## Configure
+
+Edit `/etc/boss-health/boss-health.conf` for ISOC hosts and service lists.

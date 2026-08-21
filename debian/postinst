@@ -9,6 +9,7 @@ case "$1" in
         if command -v update-desktop-database >/dev/null 2>&1; then
             update-desktop-database -q /usr/share/applications || true
         fi
+        # Cinnamon picks up applets from /usr/share/cinnamon/applets automatically.
         if [ -n "${SUDO_USER:-}" ] && command -v systemctl >/dev/null 2>&1; then
             sudo -u "$SUDO_USER" XDG_RUNTIME_DIR="/run/user/$(id -u "$SUDO_USER")" \
                 systemctl --user daemon-reload >/dev/null 2>&1 || true
