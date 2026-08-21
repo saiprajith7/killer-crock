@@ -24,6 +24,7 @@ install:
 	install -d $(DESTDIR)$(PREFIX)/share/cinnamon/applets/boss-health@boss
 	install -m 0644 data/cinnamon/applets/boss-health@boss/applet.js $(DESTDIR)$(PREFIX)/share/cinnamon/applets/boss-health@boss/applet.js
 	install -m 0644 data/cinnamon/applets/boss-health@boss/metadata.json $(DESTDIR)$(PREFIX)/share/cinnamon/applets/boss-health@boss/metadata.json
+	install -m 0644 data/cinnamon/applets/boss-health@boss/icon.png $(DESTDIR)$(PREFIX)/share/cinnamon/applets/boss-health@boss/icon.png
 	install -m 0644 data/icons/boss-health.svg $(DESTDIR)$(PREFIX)/share/cinnamon/applets/boss-health@boss/icon.svg
 
 run:

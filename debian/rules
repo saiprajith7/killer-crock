@@ -39,6 +39,8 @@ override_dh_auto_install:
 		debian/boss-sentinel/usr/share/cinnamon/applets/boss-health@boss/applet.js
 	install -m 0644 data/cinnamon/applets/boss-health@boss/metadata.json \
 		debian/boss-sentinel/usr/share/cinnamon/applets/boss-health@boss/metadata.json
+	install -m 0644 data/cinnamon/applets/boss-health@boss/icon.png \
+		debian/boss-sentinel/usr/share/cinnamon/applets/boss-health@boss/icon.png
 	install -m 0644 data/icons/boss-health.svg \
 		debian/boss-sentinel/usr/share/cinnamon/applets/boss-health@boss/icon.svg
 

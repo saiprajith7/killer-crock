@@ -2,7 +2,7 @@
 # Build a self-contained boss-sentinel (BOSS Health) .deb without debhelper.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-VERSION="1.3.0-1"
+VERSION="1.3.1-1"
 PKG="boss-sentinel_${VERSION}_all"
 STAGE="$ROOT/build/deb-stage/$PKG"
 DIST="$ROOT/dist"
@@ -14,6 +14,7 @@ mkdir -p "$STAGE/DEBIAN" \
   "$STAGE/usr/libexec/boss-sentinel" \
   "$STAGE/usr/share/applications" \
   "$STAGE/usr/share/icons/hicolor/scalable/apps" \
+  "$STAGE/usr/share/icons/hicolor/64x64/apps" \
   "$STAGE/usr/share/polkit-1/actions" \
   "$STAGE/usr/lib/systemd/user" \
   "$STAGE/etc/xdg/autostart" \
@@ -57,8 +58,14 @@ install -m 0644 "$ROOT/data/cinnamon/applets/boss-health@boss/applet.js" \
   "$STAGE/usr/share/cinnamon/applets/boss-health@boss/applet.js"
 install -m 0644 "$ROOT/data/cinnamon/applets/boss-health@boss/metadata.json" \
   "$STAGE/usr/share/cinnamon/applets/boss-health@boss/metadata.json"
+install -m 0644 "$ROOT/data/cinnamon/applets/boss-health@boss/icon.png" \
+  "$STAGE/usr/share/cinnamon/applets/boss-health@boss/icon.png"
 install -m 0644 "$ROOT/data/icons/boss-health.svg" \
   "$STAGE/usr/share/cinnamon/applets/boss-health@boss/icon.svg"
+if [ -f "$ROOT/data/icons/boss-health.png" ]; then
+  install -m 0644 "$ROOT/data/icons/boss-health.png" \
+    "$STAGE/usr/share/icons/hicolor/64x64/apps/boss-health.png"
+fi
 install -m 0644 "$ROOT/README.md" "$STAGE/usr/share/doc/boss-sentinel/README.md"
 install -m 0644 "$ROOT/TREE.md" "$STAGE/usr/share/doc/boss-sentinel/TREE.md"
 
