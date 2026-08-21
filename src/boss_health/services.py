@@ -56,6 +56,19 @@ def _unit_exists(name: str) -> bool:
     return unit in out or "enabled" in out or "disabled" in out or "static" in out
 
 
+def _systemd_usable() -> tuple[bool, str]:
+    if shutil.which("systemctl") is None:
+        return False, "systemctl not found — cannot verify services"
+    code, out = _systemctl("is-system-running")
+    blob = (out or "").lower()
+    if "not been booted with systemd" in blob or "failed to connect to bus" in blob:
+        return False, out or "systemd not running as PID 1"
+    # Even if the exit code is non-zero (degraded/offline), systemctl is usable.
+    if code == 127:
+        return False, out or "systemctl unavailable"
+    return True, out or "systemd available"
+
+
 def _evaluate_group(
     check_id: str,
     label: str,
@@ -73,14 +86,15 @@ def _evaluate_group(
             detail="Configure service list in /etc/boss-health/boss-health.conf",
         )
 
-    if shutil.which("systemctl") is None:
+    usable, reason = _systemd_usable()
+    if not usable:
         return CheckResult(
             id=check_id,
             category="services",
             label=label,
             status=CheckStatus.UNKNOWN,
             summary="systemd unavailable",
-            detail="systemctl not found — cannot verify services",
+            detail=reason,
         )
 
     details: list[str] = []
