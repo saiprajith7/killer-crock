@@ -18,6 +18,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Run all checks once, print JSON, and exit (no GUI)",
     )
     parser.add_argument(
+        "--tray",
+        action="store_true",
+        help="Run as menu-bar / system-tray icon (click opens dashboard)",
+    )
+    parser.add_argument(
         "--simulate-issue",
         choices=["cpu", "memory", "disk", "temp", "zombie", "swap", "gpu"],
         help="Inject a sentinel simulated issue into system-health checks",
@@ -31,6 +36,14 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(report.as_dict(), indent=2))
         return 0 if report.overall.value == "pass" else 1
 
+    if args.tray:
+        try:
+            from boss_health.tray import run_tray
+        except (ImportError, ValueError) as exc:
+            print(f"BOSS Health tray unavailable ({exc}).", file=sys.stderr)
+            return 2
+        return run_tray()
+
     try:
         from boss_health.dashboard import run_dashboard
     except (ImportError, ValueError) as exc:
@@ -42,6 +55,11 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     return run_dashboard(simulate=args.simulate_issue)
+
+
+def tray_main(argv: list[str] | None = None) -> int:
+    """Entry point for boss-health-tray."""
+    return main(["--tray", *(argv or [])])
 
 
 if __name__ == "__main__":

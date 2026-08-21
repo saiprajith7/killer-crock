@@ -20,23 +20,19 @@ CPU, RAM, Disk, and Overall System Health **reuse the existing BOSS-Sentinel col
 ## Install
 
 ```bash
-sudo dpkg -i ./dist/boss-sentinel_1.3.0-1_all.deb
-sudo apt -f install   # if dependencies are missing
+sudo dpkg -i ./releases/boss-sentinel_1.3.2-1_all.deb
+sudo apt -f install
 ```
 
-Then:
+After install, the **BOSS Health icon appears in the Cinnamon menu bar**.
+Click it to open the System Readiness dashboard.
 
 ```bash
-boss-health              # GTK readiness dashboard
+boss-health              # dashboard directly
+boss-health-tray         # menu-bar icon only
 boss-health --once       # JSON results (no GUI)
-boss-sentinel            # full existing sentinel monitor (unchanged)
+boss-sentinel            # full existing sentinel monitor
 ```
-
-### Cinnamon panel icon
-
-1. Right-click panel → **Applets** → add **BOSS Health**
-2. Click the panel icon → runs checks → opens the dashboard
-
 ## Run from source
 
 ```bash

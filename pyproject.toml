@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "boss-sentinel"
-version = "1.3.1"
+version = "1.3.2"
 description = "BOSS Health — System Readiness dashboard with integrated BOSS-Sentinel CPU/RAM monitoring"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -14,6 +14,7 @@ dependencies = []
 
 [project.scripts]
 boss-health = "boss_health.__main__:main"
+boss-health-tray = "boss_health.__main__:tray_main"
 boss-sentinel = "vitaheal.__main__:main"
 boss-sentinel-daemon = "vitaheal.daemon.watcher:main"
 vitaheal = "vitaheal.__main__:main"

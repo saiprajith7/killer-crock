@@ -35,6 +35,9 @@ override_dh_auto_install:
 	install -m 0644 data/config/boss-health.conf debian/boss-sentinel/usr/share/boss-health/boss-health.conf
 	# Cinnamon applet (panel icon → dashboard)
 	install -d debian/boss-sentinel/usr/share/cinnamon/applets/boss-health@boss
+	install -d debian/boss-sentinel/usr/libexec/boss-health
+	install -m 0755 scripts/boss-health-enable-panel debian/boss-sentinel/usr/libexec/boss-health/boss-health-enable-panel
+	install -m 0644 data/desktop/boss-health-tray.desktop debian/boss-sentinel/etc/xdg/autostart/boss-health-tray.desktop
 	install -m 0644 data/cinnamon/applets/boss-health@boss/applet.js \
 		debian/boss-sentinel/usr/share/cinnamon/applets/boss-health@boss/applet.js
 	install -m 0644 data/cinnamon/applets/boss-health@boss/metadata.json \

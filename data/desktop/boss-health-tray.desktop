@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=BOSS Health Tray
+Comment=BOSS Health menu-bar icon — click to open System Readiness
+Exec=boss-health-tray
+Icon=boss-health
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
+X-GNOME-Autostart-Delay=3
+Categories=System;Monitor;

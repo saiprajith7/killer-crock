@@ -2,7 +2,7 @@
 # Build a self-contained boss-sentinel (BOSS Health) .deb without debhelper.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-VERSION="1.3.1-1"
+VERSION="1.3.2-1"
 PKG="boss-sentinel_${VERSION}_all"
 STAGE="$ROOT/build/deb-stage/$PKG"
 DIST="$ROOT/dist"
@@ -12,6 +12,7 @@ mkdir -p "$STAGE/DEBIAN" \
   "$STAGE/usr/lib/python3/dist-packages" \
   "$STAGE/usr/bin" \
   "$STAGE/usr/libexec/boss-sentinel" \
+  "$STAGE/usr/libexec/boss-health" \
   "$STAGE/usr/share/applications" \
   "$STAGE/usr/share/icons/hicolor/scalable/apps" \
   "$STAGE/usr/share/icons/hicolor/64x64/apps" \
@@ -35,18 +36,26 @@ import sys
 from boss_health.__main__ import main
 sys.exit(main())
 EOF
+cat > "$STAGE/usr/bin/boss-health-tray" <<'EOF'
+#!/usr/bin/python3
+import sys
+from boss_health.__main__ import tray_main
+sys.exit(tray_main())
+EOF
 cat > "$STAGE/usr/bin/boss-sentinel" <<'EOF'
 #!/usr/bin/python3
 import sys
 from vitaheal.__main__ import main
 sys.exit(main())
 EOF
-chmod 0755 "$STAGE/usr/bin/boss-health" "$STAGE/usr/bin/boss-sentinel"
+chmod 0755 "$STAGE/usr/bin/boss-health" "$STAGE/usr/bin/boss-health-tray" "$STAGE/usr/bin/boss-sentinel"
 
 # Assets
 install -m 0755 "$ROOT/scripts/vitaheal-helper" "$STAGE/usr/libexec/boss-sentinel/boss-sentinel-helper"
+install -m 0755 "$ROOT/scripts/boss-health-enable-panel" "$STAGE/usr/libexec/boss-health/boss-health-enable-panel"
 install -m 0644 "$ROOT/data/desktop/boss-health.desktop" "$STAGE/usr/share/applications/boss-health.desktop"
 install -m 0644 "$ROOT/data/desktop/vitaheal.desktop" "$STAGE/usr/share/applications/boss-sentinel.desktop"
+install -m 0644 "$ROOT/data/desktop/boss-health-tray.desktop" "$STAGE/etc/xdg/autostart/boss-health-tray.desktop"
 install -m 0644 "$ROOT/data/icons/boss-health.svg" "$STAGE/usr/share/icons/hicolor/scalable/apps/boss-health.svg"
 install -m 0644 "$ROOT/data/icons/vitaheal.svg" "$STAGE/usr/share/icons/hicolor/scalable/apps/boss-sentinel.svg"
 install -m 0644 "$ROOT/data/polkit/org.vitaheal.policy" "$STAGE/usr/share/polkit-1/actions/org.bosssentinel.policy"
@@ -84,8 +93,8 @@ Provides: boss-health, vitaheal
 Installed-Size: ${SIZE_KB}
 Description: BOSS Health — System Readiness with integrated BOSS-Sentinel
  BOSS Health System Readiness dashboard (Connectivity, System Health via
- existing sentinel collectors, Services) plus Cinnamon applet and the
- full BOSS-Sentinel monitor.
+ existing sentinel collectors, Services) plus automatic menu-bar icon and
+ the full BOSS-Sentinel monitor.
 EOF
 
 install -m 0755 "$ROOT/debian/postinst" "$STAGE/DEBIAN/postinst"
