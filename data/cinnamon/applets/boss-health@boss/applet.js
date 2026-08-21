@@ -1,25 +1,12 @@
 /*
  * BOSS Health — Cinnamon panel applet (BOSS GNU/Linux 10+)
- * Click → open BOSS Health System Readiness dashboard
- *
- * Compatible with older Cinnamon: no spawnCommandLineAsync, safe gettext.
+ * Left-click → open System Readiness dashboard (no menu hijack).
  */
 const Applet = imports.ui.applet;
 const GLib = imports.gi.GLib;
-const Gio = imports.gi.Gio;
+const Main = imports.ui.main;
 const Util = imports.misc.util;
 const Lang = imports.lang;
-const PopupMenu = imports.ui.popupMenu;
-const Gettext = imports.gettext;
-
-Gettext.bindtextdomain("boss-health", GLib.get_home_dir() + "/.local/share/locale");
-function _(str) {
-    try {
-        return Gettext.dgettext("boss-health", str);
-    } catch (e) {
-        return str;
-    }
-}
 
 function BossHealthApplet(metadata, orientation, panel_height, instance_id) {
     this._init(metadata, orientation, panel_height, instance_id);
@@ -32,7 +19,6 @@ BossHealthApplet.prototype = {
         Applet.IconApplet.prototype._init.call(this, orientation, panel_height, instance_id);
         this.metadata = metadata;
 
-        // Prefer applet-local icon.png (works on BOSS 10 / older Cinnamon)
         try {
             if (metadata && metadata.path) {
                 this.set_applet_icon_path(metadata.path + "/icon.png");
@@ -45,46 +31,70 @@ BossHealthApplet.prototype = {
             } catch (e2) {}
         }
 
-        this.set_applet_tooltip("BOSS Health — System Readiness");
-
-        this.menuManager = new PopupMenu.PopupMenuManager(this);
-        this.menu = new Applet.AppletPopupMenu(this, orientation);
-        this.menuManager.addMenu(this.menu);
-
-        let openItem = new PopupMenu.PopupMenuItem("Open BOSS Health dashboard");
-        openItem.connect("activate", Lang.bind(this, this._launchDashboard));
-        this.menu.addMenuItem(openItem);
+        this.set_applet_tooltip("BOSS Health — click to open System Readiness");
     },
 
     on_applet_clicked: function (event) {
         this._launchDashboard();
     },
 
-    _launchDashboard: function () {
-        let cmd = null;
-        if (GLib.find_program_in_path("boss-health")) {
-            cmd = "boss-health";
-        } else if (GLib.find_program_in_path("python3")) {
-            cmd = "python3 -m boss_health";
+    _notify: function (msg) {
+        try {
+            Main.notify("BOSS Health", msg);
+        } catch (e) {
+            global.logError("BOSS Health: " + msg);
         }
+    },
 
-        if (!cmd) {
-            global.logError("BOSS Health: boss-health command not found");
+    _launchDashboard: function () {
+        // Always use absolute path — PATH is unreliable from Cinnamon
+        let candidates = [
+            "/usr/bin/boss-health",
+            "/usr/local/bin/boss-health"
+        ];
+        let exe = null;
+        for (let i = 0; i < candidates.length; i++) {
+            if (GLib.file_test(candidates[i], GLib.FileTest.IS_EXECUTABLE)) {
+                exe = candidates[i];
+                break;
+            }
+        }
+        if (!exe) {
+            let p = GLib.find_program_in_path("boss-health");
+            if (p) exe = p;
+        }
+        if (!exe) {
+            this._notify("boss-health not found. Reinstall the package.");
             return;
         }
 
-        // Older Cinnamon has spawnCommandLine only (not Async)
         try {
-            if (typeof Util.spawnCommandLine === "function") {
-                Util.spawnCommandLine(cmd);
-                return;
-            }
-        } catch (e) {}
+            // argv spawn is more reliable than shell command line on BOSS 10
+            GLib.spawn_async(
+                null,
+                [exe],
+                null,
+                GLib.SpawnFlags.SEARCH_PATH,
+                null
+            );
+            return;
+        } catch (e1) {
+            global.logError("BOSS Health spawn_async failed: " + e1);
+        }
 
         try {
-            GLib.spawn_command_line_async(cmd);
+            if (typeof Util.spawnCommandLine === "function") {
+                Util.spawnCommandLine(exe);
+                return;
+            }
         } catch (e2) {
-            global.logError("BOSS Health launch failed: " + e2);
+            global.logError("BOSS Health spawnCommandLine failed: " + e2);
+        }
+
+        try {
+            GLib.spawn_command_line_async(exe);
+        } catch (e3) {
+            this._notify("Could not open dashboard: " + e3);
         }
     }
 };

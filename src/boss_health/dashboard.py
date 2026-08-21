@@ -283,6 +283,13 @@ class BossHealthDashboard(Gtk.Window):
 def run_dashboard(*, simulate: Optional[str] = None) -> int:
     _load_css()
     win = BossHealthDashboard(simulate=simulate)
+    try:
+        win.set_wmclass("boss-health", "BOSS Health")
+    except Exception:
+        pass
+    win.set_keep_above(True)
     win.present()
+    # Drop keep-above after a moment so it does not stay sticky
+    GLib.timeout_add(800, lambda: (win.set_keep_above(False), False)[1])
     Gtk.main()
     return 0

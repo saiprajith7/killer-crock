@@ -4,5 +4,5 @@
     "description": "BOSS Health — System Readiness. Click to run checks and open the dashboard.",
     "icon": "icon.png",
     "max-instances": -1,
-    "version": "1.0.1"
+    "version": "1.0.2"
 }

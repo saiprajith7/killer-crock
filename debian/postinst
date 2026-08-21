@@ -27,6 +27,13 @@ case "$1" in
                     DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$UID_NUM/bus" \
                     /usr/libexec/boss-health/boss-health-enable-panel \
                     >/dev/null 2>&1 || true
+                # Reload applets so fixed applet.js is picked up without logout
+                sudo -u "$TARGET_USER" \
+                    DISPLAY="$DISPLAY" \
+                    XDG_RUNTIME_DIR="/run/user/$UID_NUM" \
+                    DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$UID_NUM/bus" \
+                    cinnamon-dbus-command ReloadXlet boss-health@boss APPLET \
+                    >/dev/null 2>&1 || true
             fi
         fi
 

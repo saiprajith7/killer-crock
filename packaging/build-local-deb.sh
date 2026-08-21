@@ -2,7 +2,7 @@
 # Build a self-contained boss-sentinel (BOSS Health) .deb without debhelper.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-VERSION="1.3.2-1"
+VERSION="1.3.3-1"
 PKG="boss-sentinel_${VERSION}_all"
 STAGE="$ROOT/build/deb-stage/$PKG"
 DIST="$ROOT/dist"
@@ -29,22 +29,24 @@ cp -a "$ROOT/src/vitaheal" "$STAGE/usr/lib/python3/dist-packages/"
 cp -a "$ROOT/src/boss_health" "$STAGE/usr/lib/python3/dist-packages/"
 find "$STAGE/usr/lib/python3/dist-packages" -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true
 
-# Wrappers
-cat > "$STAGE/usr/bin/boss-health" <<'EOF'
-#!/usr/bin/python3
-import sys
-from boss_health.__main__ import main
-sys.exit(main())
-EOF
+# Reliable launcher (shows error dialog on failure)
+install -m 0755 "$ROOT/scripts/boss-health-launch" "$STAGE/usr/bin/boss-health"
+
 cat > "$STAGE/usr/bin/boss-health-tray" <<'EOF'
 #!/usr/bin/python3
 import sys
+for p in ("/usr/lib/python3/dist-packages", "/usr/local/lib/python3/dist-packages"):
+    if p not in sys.path:
+        sys.path.insert(0, p)
 from boss_health.__main__ import tray_main
 sys.exit(tray_main())
 EOF
 cat > "$STAGE/usr/bin/boss-sentinel" <<'EOF'
 #!/usr/bin/python3
 import sys
+for p in ("/usr/lib/python3/dist-packages", "/usr/local/lib/python3/dist-packages"):
+    if p not in sys.path:
+        sys.path.insert(0, p)
 from vitaheal.__main__ import main
 sys.exit(main())
 EOF
@@ -78,7 +80,6 @@ fi
 install -m 0644 "$ROOT/README.md" "$STAGE/usr/share/doc/boss-sentinel/README.md"
 install -m 0644 "$ROOT/TREE.md" "$STAGE/usr/share/doc/boss-sentinel/TREE.md"
 
-# Control
 SIZE_KB=$(du -sk "$STAGE" | awk '{print $1}')
 cat > "$STAGE/DEBIAN/control" <<EOF
 Package: boss-sentinel
@@ -92,9 +93,8 @@ Recommends: cinnamon, gir1.2-gtk-4.0, gir1.2-adw-1, policykit-1, libnotify-bin, 
 Provides: boss-health, vitaheal
 Installed-Size: ${SIZE_KB}
 Description: BOSS Health — System Readiness with integrated BOSS-Sentinel
- BOSS Health System Readiness dashboard (Connectivity, System Health via
- existing sentinel collectors, Services) plus automatic menu-bar icon and
- the full BOSS-Sentinel monitor.
+ BOSS Health System Readiness dashboard. Menu-bar icon click opens the
+ readiness dashboard. Reuses BOSS-Sentinel CPU/RAM collectors.
 EOF
 
 install -m 0755 "$ROOT/debian/postinst" "$STAGE/DEBIAN/postinst"
