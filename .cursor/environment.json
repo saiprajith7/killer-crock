@@ -1,0 +1,9 @@
+{
+  "name": "BOSS Health / BOSS-Sentinel",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "user": "ubuntu",
+  "install": "bash .cursor/scripts/cloud-agent-install.sh"
+}
